@@ -116,3 +116,4 @@ for bucket in set(bucket_assignments_train):
 
 with open('remtime_%s_%s_%s_%s.pkl' % (bucket_method, cls_encoding, cls_method, dataset_ref), 'wb') as f:
     pickle.dump(pipelines, f, protocol=2)
+    pickle.dump(bucketer, f, protocol=2)
