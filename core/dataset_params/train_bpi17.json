@@ -1,0 +1,34 @@
+{
+  "case_id_col": "case_id",
+  "activity_col": "activity_name",
+  "timestamp_col": "time",
+  "dynamic_cat_cols": [
+    "activity_name",
+    "Resource",
+    "Action",
+    "CreditScore",
+    "EventOrigin"
+  ],
+  "static_cat_cols": [
+    "LoanGoal",
+    "ApplicationType"
+  ],
+  "dynamic_num_cols": [
+    "FirstWithdrawalAmount",
+    "NumberOfTerms",
+    "OfferedAmount",
+    "activity_duration",
+    "duration",
+    "hour"
+  ],
+  "static_num_cols": [
+
+  ],
+  "label_cat_cols":[
+    "label",
+    "label2"
+  ],
+  "label_num_cols":[
+    "remtime"
+  ]
+}

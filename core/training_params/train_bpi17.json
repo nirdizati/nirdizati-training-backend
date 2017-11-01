@@ -1,0 +1,326 @@
+{
+   "remtime": {
+      "prefix_index": {
+         "gbm": {
+            "1": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": "sqrt",
+               "gbm_learning_rate": 0.02
+            },
+            "2": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.02
+            },
+            "3": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": "sqrt",
+               "gbm_learning_rate": 0.02
+            },
+            "4": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": "sqrt",
+               "gbm_learning_rate": 0.2
+            },
+            "5": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.02
+            },
+            "6": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": "sqrt",
+               "gbm_learning_rate": 0.02
+            },
+            "7": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.02
+            },
+            "8": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": "sqrt",
+               "gbm_learning_rate": 0.2
+            },
+            "9": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.02
+            },
+            "10": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.02
+            },
+            "11": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.02
+            },
+            "12": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.02
+            },
+            "13": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.02
+            },
+            "14": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.02
+            },
+            "15": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.02
+            },
+            "16": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.02
+            },
+            "17": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.02
+            }
+         }
+      }
+   },
+   "label":{
+      "prefix_index": {
+         "gbm": {
+            "1": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "sqrt",
+               "gbm_learning_rate": 0.05
+            },
+            "2": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.05
+            },
+            "3": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "sqrt",
+               "gbm_learning_rate": 0.05
+            },
+            "4": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "sqrt",
+               "gbm_learning_rate": 0.2
+            },
+            "5": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.05
+            },
+            "6": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "sqrt",
+               "gbm_learning_rate": 0.05
+            },
+            "7": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.05
+            },
+            "8": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "sqrt",
+               "gbm_learning_rate": 0.2
+            },
+            "9": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.05
+            },
+            "10": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.05
+            },
+            "11": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.05
+            },
+            "12": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.05
+            },
+            "13": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.05
+            },
+            "14": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.05
+            },
+            "15": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.05
+            },
+            "16": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.05
+            },
+            "17": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": 0.25,
+               "gbm_learning_rate": 0.05
+            }
+         }
+      }
+   },
+  "label2":{
+      "prefix_index": {
+         "gbm": {
+            "1": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "auto",
+               "gbm_learning_rate": 0.15
+            },
+            "2": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "auto",
+               "gbm_learning_rate": 0.15
+            },
+            "3": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "auto",
+               "gbm_learning_rate": 0.15
+            },
+            "4": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "auto",
+               "gbm_learning_rate": 0.2
+            },
+            "5": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "auto",
+               "gbm_learning_rate": 0.15
+            },
+            "6": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "auto",
+               "gbm_learning_rate": 0.15
+            },
+            "7": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "auto",
+               "gbm_learning_rate": 0.15
+            },
+            "8": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "auto",
+               "gbm_learning_rate": 0.2
+            },
+            "9": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "auto",
+               "gbm_learning_rate": 0.15
+            },
+            "10": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "auto",
+               "gbm_learning_rate": 0.15
+            },
+            "11": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "auto",
+               "gbm_learning_rate": 0.15
+            },
+            "12": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "auto",
+               "gbm_learning_rate": 0.15
+            },
+            "13": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "auto",
+               "gbm_learning_rate": 0.15
+            },
+            "14": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "auto",
+               "gbm_learning_rate": 0.15
+            },
+            "15": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "auto",
+               "gbm_learning_rate": 0.15
+            },
+            "16": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "auto",
+               "gbm_learning_rate": 0.15
+            },
+            "17": {
+               "n_clusters": 1,
+               "n_estimators": 150,
+               "max_features": "auto",
+               "gbm_learning_rate": 0.15
+            }
+         }
+      }
+  }
+}
