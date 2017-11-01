@@ -2,8 +2,6 @@
 
 from sklearn.base import TransformerMixin
 import pandas as pd
-import numpy as np
-from time import time
 
 class IndexBasedTransformer(TransformerMixin):
     
@@ -16,17 +14,13 @@ class IndexBasedTransformer(TransformerMixin):
         self.create_dummies = create_dummies
         
         self.columns = None
-        
-        self.fit_time = 0
-        self.transform_time = 0
-    
+
     
     def fit(self, X, y=None):
         return self
     
     def transform(self, X, y=None):
-        start = time()
-        
+
         grouped = X.groupby(self.case_id_col, as_index=False)
         
         if self.max_events is None:
@@ -58,5 +52,4 @@ class IndexBasedTransformer(TransformerMixin):
                 dt_transformed[col] = 0
             dt_transformed = dt_transformed[self.columns]
 
-        self.transform_time = time() - start
         return dt_transformed

@@ -1,9 +1,6 @@
 # implementation based on https://github.com/irhete/predictive-monitoring-benchmark and https://github.com/nirdizati/nirdizati-training-backend
 
 from sklearn.base import TransformerMixin
-import pandas as pd
-import numpy as np
-from time import time
 
 class IndexBasedExtractor(TransformerMixin):
     
@@ -13,17 +10,14 @@ class IndexBasedExtractor(TransformerMixin):
         self.max_events = max_events
         self.fillna = fillna
         self.columns = None
-        
-        self.fit_time = 0
-        self.transform_time = 0
-    
+
     
     def fit(self, X, y=None):
         return self
     
     def transform(self, X, y=None):
-        start = time()
-        
+
+
         # add missing columns if necessary
         if self.columns is None:
             relevant_num_cols = ["%s_%s"%(col, i) for col in self.num_cols for i in range(self.max_events)]
@@ -35,5 +29,4 @@ class IndexBasedExtractor(TransformerMixin):
             for col in missing_cols:
                 X[col] = 0
         
-        self.transform_time = time() - start
         return X[self.columns]

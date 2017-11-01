@@ -1,0 +1,42 @@
+{
+  "case_id_col": "Case ID",
+  "activity_col": "Activity",
+  "timestamp_col": "Complete Timestamp",
+  "dynamic_cat_cols": [
+    "Activity",
+    "monitoringResource",
+    "question",
+    "Resource"
+  ],
+  "static_cat_cols": [
+    "Responsible_actor"
+  ],
+  "dynamic_num_cols": [
+    "duration",
+    "month",
+    "weekday",
+    "hour"
+  ],
+  "static_num_cols": [
+    "SUMleges",
+    "Aanleg (Uitvoeren werk of werkzaamheid)",
+    "Bouw",
+    "Brandveilig gebruik (vergunning)",
+    "Gebiedsbescherming",
+    "Handelen in strijd met regels RO",
+    "Inrit/Uitweg",
+    "Kap",
+    "Milieu (neutraal wijziging)",
+    "Milieu (omgevingsvergunning beperkte milieutoets)",
+    "Milieu (vergunning)",
+    "Monument",
+    "Reclame",
+    "Sloop"
+  ],
+  "label_num_cols":[
+    "remtime"
+  ],
+  "label_cat_cols":[
+
+  ]
+}

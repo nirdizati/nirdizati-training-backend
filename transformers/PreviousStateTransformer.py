@@ -2,7 +2,6 @@
 
 from sklearn.base import TransformerMixin
 import pandas as pd
-from time import time
 
 class PreviousStateTransformer(TransformerMixin):
     
@@ -13,18 +12,14 @@ class PreviousStateTransformer(TransformerMixin):
         self.fillna = fillna
         
         self.columns = None
-        
-        self.fit_time = 0
-        self.transform_time = 0
-        
+
     
     def fit(self, X, y=None):
         return self
     
     
     def transform(self, X, y=None):
-        start = time()
-        
+
         dt_last = X.groupby(self.case_id_col).nth(-2)
         
         # transform numeric cols
@@ -51,7 +46,6 @@ class PreviousStateTransformer(TransformerMixin):
         else:
             self.columns = dt_transformed.columns
         
-        self.transform_time = time() - start
         return dt_transformed
     
     

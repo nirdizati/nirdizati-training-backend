@@ -1,0 +1,45 @@
+{
+   "remtime": {
+      "single_agg": {
+         "rf": {
+            "n_clusters": 1,
+            "n_estimators": 100,
+            "max_features": "sqrt"
+         }
+      },
+      "prefix_index": {
+         "rf": {
+            "1": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": "sqrt"
+            },
+            "2": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": "sqrt"
+            },
+            "3": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": 0.1
+            },
+            "4": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": 0.5
+            },
+            "5": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": 0.1
+            },
+            "6": {
+               "n_clusters": 1,
+               "n_estimators": 100,
+               "max_features": "sqrt"
+            }
+         }
+      }
+   }
+}

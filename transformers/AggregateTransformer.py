@@ -3,7 +3,6 @@
 from sklearn.base import TransformerMixin
 import pandas as pd
 import numpy as np
-from time import time
 import sys
 
 class AggregateTransformer(TransformerMixin):
@@ -17,17 +16,13 @@ class AggregateTransformer(TransformerMixin):
         self.fillna = fillna
         
         self.columns = None
-        
-        self.fit_time = 0
-        self.transform_time = 0
-    
+
     
     def fit(self, X, y=None):
         return self
     
     def transform(self, X, y=None):
-        start = time()
-        
+
         # transform numeric cols
         if len(self.num_cols) > 0:
             dt_numeric = X.groupby(self.case_id_col)[self.num_cols].agg({'mean':np.mean, 'max':np.max, 'min':np.min, 'sum':np.sum, 'std':np.std})
@@ -60,5 +55,4 @@ class AggregateTransformer(TransformerMixin):
                 dt_transformed[col] = 0
             dt_transformed = dt_transformed[self.columns]
         
-        self.transform_time = time() - start
         return dt_transformed

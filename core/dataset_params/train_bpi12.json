@@ -1,0 +1,25 @@
+{
+  "case_id_col": "case_id",
+  "activity_col": "activity_name",
+  "timestamp_col": "time",
+  "dynamic_cat_cols": [
+    "activity_name",
+    "Resource"
+  ],
+  "static_cat_cols": [
+
+  ],
+  "dynamic_num_cols": [
+    "proctime",
+    "elapsed"
+  ],
+  "static_num_cols": [
+    "AMOUNT_REQ"
+  ],
+  "label_cat_cols":[
+    "label"
+  ],
+  "label_num_cols":[
+    "remtime"
+  ]
+}
