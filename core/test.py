@@ -24,7 +24,7 @@ with open(os.path.join(pickles_dir, '%s' % pickle_model), 'rb') as f:
 ##### MAIN PART ######
 
 dataset_manager = DatasetManager(dataset_ref, label_col)
-dtypes = {col: "object" for col in dataset_manager.dynamic_cat_cols + dataset_manager.static_cat_cols +
+dtypes = {col: "str" for col in dataset_manager.dynamic_cat_cols + dataset_manager.static_cat_cols +
           [dataset_manager.case_id_col, dataset_manager.timestamp_col]}
 for col in dataset_manager.dynamic_num_cols + dataset_manager.static_num_cols:
     dtypes[col] = "float"
@@ -32,10 +32,10 @@ for col in dataset_manager.dynamic_num_cols + dataset_manager.static_num_cols:
 if dataset_manager.mode == "regr":
     dtypes[dataset_manager.label_col] = "float"  # if regression, target value is float
 else:
-    dtypes[dataset_manager.label_col] = "object"  # if classification, preserve and do not interpret dtype of label
+    dtypes[dataset_manager.label_col] = "str"  # if classification, preserve and do not interpret dtype of label
 
-#test = pd.read_csv(os.path.join(logs_dir, test_file), sep=";", dtype=dtypes)
 test = pd.read_json(os.path.join(logs_dir, test_file), orient='records', dtype=dtypes)
+#test = test.drop(label_col, axis = 1)
 test[dataset_manager.timestamp_col] = pd.to_datetime(test[dataset_manager.timestamp_col])
 
 # get bucket for the test case

@@ -35,10 +35,16 @@
                "max_features": 0.1
             },
             "6": {
-               "n_clusters": 1,
-               "n_estimators": 100,
-               "max_features": "sqrt"
+              "n_clusters": 1,
+              "n_estimators": 100,
+              "max_features": "sqrt"
+            },
+            "7": {
+              "n_clusters": 1,
+              "n_estimators": 100,
+              "max_features": "sqrt"
             }
+
          }
       }
    }
