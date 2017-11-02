@@ -75,7 +75,7 @@ for row in data_best_over_all_prefixes[~data_best_over_all_prefixes.method.str.c
         value = row[3 + i]
         if param == "max_features":
             value = value if value == "sqrt" else float(value)
-        elif param in ["n_clusters", "n_estimators", "n_neighbors"]:
+        elif param in ["n_clusters", "n_estimators", "max_depth"]:
             value = int(value)
         elif param == "gbm_learning_rate":
             value = float(value)
@@ -99,7 +99,7 @@ for row in data_best[data_best.method.str.contains("prefix")][
         value = row[4 + i]
         if param == "max_features":
             value = value if value == "sqrt" else float(value)
-        elif param in ["n_clusters", "n_estimators", "n_neighbors"]:
+        elif param in ["n_clusters", "n_estimators", "max_depth"]:
             value = int(value)
         elif param == "gbm_learning_rate":
             value = float(value)

@@ -111,10 +111,10 @@ with open(outfile, 'w') as fout:
         # set optimal params for this bucket
         if bucket_method == "prefix":
             cls_args = {k: v for k, v in best_params[label_col][method_name][cls_method][u'%s' % bucket].items() if
-                        k not in ['n_clusters', 'n_neighbors']}
+                        k not in ['n_clusters']}
         else:
             cls_args = {k: v for k, v in best_params[label_col][method_name][cls_method].items() if
-                        k not in ['n_clusters', 'n_neighbors']}
+                        k not in ['n_clusters']}
         cls_args['mode'] = dataset_manager.mode
         cls_args['random_state'] = random_state
         cls_args['min_cases_for_training'] = n_min_cases_in_bucket

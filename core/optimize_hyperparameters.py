@@ -53,6 +53,10 @@ elif cls_method == "gbm":
                   'max_features':["sqrt", 0.25],
                   'gbm_learning_rate':[0.1, 0.2]}
 
+elif cls_method == "dt":
+    cls_params = {'max_features':[0.1, 0.6, 0.9],
+                  'max_depth':[5, 10, 20]}
+
 bucketer_params_names = list(bucketer_params.keys())
 cls_params_names = list(cls_params.keys())
 
