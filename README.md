@@ -7,7 +7,7 @@ python train.py log_name_csv bucketing_type encoding_type learner_type target
 * log_name_csv - name of the file as in `logdata` directory 
 * bucketing_type - `single`, `cluster`, `state` or `prefix`
 * encoding_type - `agg`, `laststate`, `index` or `combined`
-* learner_type - `rf` or `gbm`
+* learner_type - `rf`, `gbm` or `dt`
 * target - name of the column that you need to predict, e.g. `remtime` or `label` (check if it exists in the log)
 
 Example:
