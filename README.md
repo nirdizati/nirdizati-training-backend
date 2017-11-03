@@ -5,7 +5,7 @@ python train.py log_name_csv bucketing_type encoding_type learner_type target
 ```
 
 * log_name_csv - name of the file as in `logdata` directory 
-* bucketing_type - `single`, `cluster`, `state` or `prefix`
+* bucketing_type - `zero`, `cluster`, `state` or `prefix`
 * encoding_type - `agg`, `laststate`, `index` or `combined`
 * learner_type - `rf`, `gbm` or `dt`
 * target - name of the column that you need to predict, e.g. `remtime` or `label` (check if it exists in the log)
@@ -13,7 +13,7 @@ python train.py log_name_csv bucketing_type encoding_type learner_type target
 Example:
 
 ```bash
-python train.py BPIC15_4.csv single agg rf remtime
+python train.py BPIC15_4.csv zero agg rf remtime
 
 ```
 
@@ -36,7 +36,7 @@ This script assumes that you have a training configuration file in `core/trainin
 Example:
 ```json
    "remtime": {
-      "single_agg": {
+      "zero_agg": {
          "rf": {
             "n_clusters": 1,
             "n_estimators": 100,
@@ -63,7 +63,7 @@ python test.py pickle_model_filename
 
 Example:
 ```bash
-python test.py test_BPIC15_4.json BPIC15_4_single_agg_rf_remtime.pkl
+python test.py test_BPIC15_4.json BPIC15_4_zero_agg_rf_remtime.pkl
 ```
 
 The output should be printed to stdout

@@ -40,7 +40,7 @@ method_name = "%s_%s" % (bucket_method, cls_encoding)
 methods = encoding_dict[cls_encoding]
 
 outfile = os.path.join(home_dir, results_dir,
-                       "final_results_%s_%s_%s_%s.csv" % (dataset_ref, method_name, cls_method, label_col))
+                       "validation_results_%s_%s_%s_%s.csv" % (dataset_ref, method_name, cls_method, label_col))
 
 random_state = 22
 fillna = True

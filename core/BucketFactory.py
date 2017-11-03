@@ -20,7 +20,7 @@ def get_bucketer(method, encoding_method=None, case_id_col=None, cat_cols=None, 
         bucket_encoder = EncoderFactory.get_encoder(method=encoding_method, case_id_col=case_id_col, dynamic_cat_cols=cat_cols, dynamic_num_cols=num_cols)
         return StateBasedBucketer(encoder=bucket_encoder)
             
-    elif method == "single":
+    elif method == "zero":
         return NoBucketer(case_id_col=case_id_col)
 
     elif method == "prefix":
