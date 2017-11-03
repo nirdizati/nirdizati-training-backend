@@ -6,7 +6,7 @@ from sklearn.tree import DecisionTreeClassifier
 from ClassifierWrapper import ClassifierWrapper
 
 
-def get_classifier(method, mode, n_estimators, max_features, gbm_learning_rate=None, random_state=None, min_cases_for_training=30):
+def get_classifier(method, mode, max_features, n_estimators=None, gbm_learning_rate=None, random_state=None, min_cases_for_training=30, max_depth=None):
 
     if method == "rf" and mode == "regr":
         return ClassifierWrapper(
@@ -30,12 +30,12 @@ def get_classifier(method, mode, n_estimators, max_features, gbm_learning_rate=N
 
     elif method == "dt" and mode == "regr":
         return ClassifierWrapper(
-            cls=DecisionTreeRegressor(random_state=random_state),
+            cls=DecisionTreeRegressor(max_depth=max_depth, random_state=random_state),
             min_cases_for_training=min_cases_for_training, mode=mode)
 
     elif method == "dt" and mode == "class":
         return ClassifierWrapper(
-            cls=DecisionTreeClassifier(random_state=random_state),
+            cls=DecisionTreeClassifier(max_depth=max_depth, random_state=random_state),
             min_cases_for_training=min_cases_for_training, mode=mode)
 
     else:

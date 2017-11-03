@@ -33,7 +33,7 @@ encoding_dict = {
     "agg": ["static", "agg"],
     "index": ["static", "index"],
     "combined": ["static", "last", "agg"]}
-    
+
 method_name = "%s_%s" % (bucket_method, cls_encoding)
 methods = encoding_dict[cls_encoding]
 
@@ -47,11 +47,15 @@ else:
 if cls_method == "rf":
     cls_params = {'n_estimators':[100],
                   'max_features':["sqrt", 0.1, 0.5]}
-    
+
 elif cls_method == "gbm":
-    cls_params = {'n_estimators':[100, 250],
+    cls_params = {'n_estimators':[100],
                   'max_features':["sqrt", 0.25],
-                  'gbm_learning_rate':[0.01, 0.1]}
+                  'gbm_learning_rate':[0.1, 0.2]}
+
+elif cls_method == "dt":
+    cls_params = {'max_features':[0.1, 0.6, 0.9],
+                  'max_depth':[5, 10, 20]}
 
 bucketer_params_names = list(bucketer_params.keys())
 cls_params_names = list(cls_params.keys())
@@ -59,22 +63,22 @@ cls_params_names = list(cls_params.keys())
 
 outfile = os.path.join(home_dir, results_dir, "CV_%s_%s_%s_%s.csv"%(dataset_ref, method_name, cls_method, label_col))
 
-    
+
 train_ratio = 0.8
 random_state = 22
 fillna = True
 n_min_cases_in_bucket = 30
-    
-    
+
+
 ##### MAIN PART ######    
 with open(outfile, 'w') as fout:
-    
+
     fout.write("%s,%s,%s,%s,%s,%s,%s,%s,%s\n"%("part", "label_col", "method", "cls", ",".join(bucketer_params_names), ",".join(cls_params_names), "nr_events", "metric", "score"))
-    
+
     dataset_manager = DatasetManager(dataset_ref, label_col)
 
     # read the data
-    dtypes = {col: "object" for col in dataset_manager.dynamic_cat_cols + dataset_manager.static_cat_cols +
+    dtypes = {col: "str" for col in dataset_manager.dynamic_cat_cols + dataset_manager.static_cat_cols +
               [dataset_manager.case_id_col, dataset_manager.timestamp_col]}
     for col in dataset_manager.dynamic_num_cols + dataset_manager.static_num_cols:
         dtypes[col] = "float"
@@ -82,7 +86,7 @@ with open(outfile, 'w') as fout:
     if dataset_manager.mode == "regr":
         dtypes[dataset_manager.label_col] = "float" # if regression, target value is float
     else:
-        dtypes[dataset_manager.label_col] = "object" # if classification, preserve and do not interpret dtype of label
+        dtypes[dataset_manager.label_col] = "str" # if classification, preserve and do not interpret dtype of label
 
     data = pd.read_csv(os.path.join(logs_dir, train_file), sep=";", dtype=dtypes)
     data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])

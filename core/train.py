@@ -40,7 +40,7 @@ method_name = "%s_%s" % (bucket_method, cls_encoding)
 methods = encoding_dict[cls_encoding]
 
 outfile = os.path.join(home_dir, results_dir,
-                       "final_results_%s_%s_%s_%s.csv" % (dataset_ref, method_name, cls_method, label_col))
+                       "validation_results_%s_%s_%s_%s.csv" % (dataset_ref, method_name, cls_method, label_col))
 
 random_state = 22
 fillna = True
@@ -51,7 +51,7 @@ with open(outfile, 'w') as fout:
     fout.write("%s,%s,%s,%s,%s,%s\n" % ("label_col", "method", "cls", "nr_events", "metric", "score"))
 
     dataset_manager = DatasetManager(dataset_ref, label_col)
-    dtypes = {col: "object" for col in dataset_manager.dynamic_cat_cols + dataset_manager.static_cat_cols +
+    dtypes = {col: "str" for col in dataset_manager.dynamic_cat_cols + dataset_manager.static_cat_cols +
               [dataset_manager.case_id_col, dataset_manager.timestamp_col]}
     for col in dataset_manager.dynamic_num_cols + dataset_manager.static_num_cols:
         dtypes[col] = "float"
@@ -59,18 +59,18 @@ with open(outfile, 'w') as fout:
     if dataset_manager.mode == "regr":
         dtypes[dataset_manager.label_col] = "float"  # if regression, target value is float
     else:
-        dtypes[dataset_manager.label_col] = "object"  # if classification, preserve and do not interpret dtype of label
+        dtypes[dataset_manager.label_col] = "str"  # if classification, preserve and do not interpret dtype of label
 
     data = pd.read_csv(os.path.join(logs_dir, train_file), sep=";", dtype=dtypes)
     data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])
 
     # split data into training and validation sets
-    train, test = dataset_manager.split_data(data, train_ratio=0.90)
+    train, test = dataset_manager.split_data(data, train_ratio=0.80)
     # train = train.sort_values(dataset_manager.timestamp_col, ascending=True, kind='mergesort')
 
     # consider prefix lengths until 90th percentile of case length
     min_prefix_length = 1
-    max_prefix_length = min(7, dataset_manager.get_pos_case_length_quantile(data, 0.98))
+    max_prefix_length = min(15, dataset_manager.get_pos_case_length_quantile(data, 0.98))
     del data
 
     # create prefix logs
@@ -111,10 +111,10 @@ with open(outfile, 'w') as fout:
         # set optimal params for this bucket
         if bucket_method == "prefix":
             cls_args = {k: v for k, v in best_params[label_col][method_name][cls_method][u'%s' % bucket].items() if
-                        k not in ['n_clusters', 'n_neighbors']}
+                        k not in ['n_clusters']}
         else:
             cls_args = {k: v for k, v in best_params[label_col][method_name][cls_method].items() if
-                        k not in ['n_clusters', 'n_neighbors']}
+                        k not in ['n_clusters']}
         cls_args['mode'] = dataset_manager.mode
         cls_args['random_state'] = random_state
         cls_args['min_cases_for_training'] = n_min_cases_in_bucket
