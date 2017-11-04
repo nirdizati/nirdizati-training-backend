@@ -56,7 +56,7 @@
       }
    },
    "label": {
-      "zero_agg": {
+      "zero_combined": {
          "rf": {
             "gbm_learning_rate": 0.0,
             "max_features": 0.5,

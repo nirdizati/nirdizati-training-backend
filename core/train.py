@@ -26,6 +26,7 @@ home_dir = ""
 logs_dir = "../logdata/"
 training_params_dir = "training_params/"
 results_dir = "../results/"
+feature_importance_dir = "../results/feature_importance"
 pickles_dir = "../pkl/"
 
 best_params = pd.read_json(os.path.join(home_dir, training_params_dir, "%s.json" % dataset_ref), typ="series")
@@ -41,6 +42,8 @@ methods = encoding_dict[cls_encoding]
 
 outfile = os.path.join(home_dir, results_dir,
                        "validation_results_%s_%s_%s_%s.csv" % (dataset_ref, method_name, cls_method, label_col))
+
+pickle_file = os.path.join(pickles_dir, '%s_%s_%s_%s.pkl' % (dataset_ref, method_name, cls_method, label_col))
 
 random_state = 22
 fillna = True
@@ -132,8 +135,21 @@ with open(outfile, 'w') as fout:
 
         pipelines[bucket].fit(dt_train_bucket, train_y)
 
-    with open(os.path.join(pickles_dir, '%s_%s_%s_%s.pkl' % (dataset_ref, method_name, cls_method, label_col)),
-              'wb') as f:
+        feature_set = []
+        for feature_set_this_encoding in pipelines[bucket].steps[0][1].transformer_list:
+            for feature in feature_set_this_encoding[1].columns.tolist():
+                feature_set.append(feature)
+
+        feats = {}  # a dict to hold feature_name: feature_importance
+        for feature, importance in zip(feature_set, pipelines[bucket].named_steps.cls.cls.feature_importances_):
+            feats[feature] = importance  # add the name/value pair
+
+        importances = pd.DataFrame.from_dict(feats, orient='index').rename(columns={0: 'Gini-importance'})
+        importances = importances.sort_values(by='Gini-importance', ascending=False)
+        importances.to_csv(os.path.join(home_dir, feature_importance_dir, "feat_importance_%s_%s_%s_%s_%s.csv" %
+                                        (dataset_ref, method_name, cls_method, label_col, bucket)))
+
+    with open(pickle_file, 'wb') as f:
         pickle.dump(pipelines, f)
         pickle.dump(bucketer, f)
         pickle.dump(dataset_manager, f)
