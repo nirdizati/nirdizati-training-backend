@@ -45,7 +45,7 @@ if bucket not in pipelines:  # TODO fix this
 else:
     # make actual predictions
     preds = pipelines[bucket].predict_proba(test)
-    preds = np.around(preds, decimals=3)
+    preds = np.around(np.asscalar(preds), decimals=3)
     if dataset_manager.mode == "regr":
-        preds = max(0, np.asscalar(preds))  # if remaining time is predicted to be negative, make it zero
+        preds = max(0, preds)  # if remaining time is predicted to be negative, make it zero
     print(preds)
