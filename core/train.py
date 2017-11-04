@@ -22,11 +22,12 @@ cls_method = argv[4]
 label_col = argv[5]
 
 dataset_ref = os.path.splitext(train_file)[0]
-home_dir = ""
-logs_dir = "../logdata/"
-training_params_dir = "training_params/"
-results_dir = "../results/"
-pickles_dir = "../pkl/"
+home_dir = os.environ['PYTHONPATH']
+logs_dir = "logdata/"
+training_params_dir = "core/training_params/"
+results_dir = "results/validation/"
+feature_importance_dir = "results/feature_importance/"
+pickles_dir = "pkl/"
 
 best_params = pd.read_json(os.path.join(home_dir, training_params_dir, "%s.json" % dataset_ref), typ="series")
 
@@ -40,7 +41,9 @@ method_name = "%s_%s" % (bucket_method, cls_encoding)
 methods = encoding_dict[cls_encoding]
 
 outfile = os.path.join(home_dir, results_dir,
-                       "validation_results_%s_%s_%s_%s.csv" % (dataset_ref, method_name, cls_method, label_col))
+                       "validation_%s_%s_%s_%s.csv" % (dataset_ref, method_name, cls_method, label_col))
+
+pickle_file = os.path.join(home_dir, pickles_dir, '%s_%s_%s_%s.pkl' % (dataset_ref, method_name, cls_method, label_col))
 
 random_state = 22
 fillna = True
@@ -61,7 +64,7 @@ with open(outfile, 'w') as fout:
     else:
         dtypes[dataset_manager.label_col] = "str"  # if classification, preserve and do not interpret dtype of label
 
-    data = pd.read_csv(os.path.join(logs_dir, train_file), sep=";", dtype=dtypes)
+    data = pd.read_csv(os.path.join(home_dir, logs_dir, train_file), sep=";", dtype=dtypes)
     data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])
 
     # split data into training and validation sets
@@ -70,7 +73,7 @@ with open(outfile, 'w') as fout:
 
     # consider prefix lengths until 90th percentile of case length
     min_prefix_length = 1
-    max_prefix_length = min(15, dataset_manager.get_pos_case_length_quantile(data, 0.98))
+    max_prefix_length = min(15, dataset_manager.get_pos_case_length_quantile(data, 0.9))
     del data
 
     # create prefix logs
@@ -132,12 +135,24 @@ with open(outfile, 'w') as fout:
 
         pipelines[bucket].fit(dt_train_bucket, train_y)
 
-    with open(os.path.join(pickles_dir, '%s_%s_%s_%s.pkl' % (dataset_ref, method_name, cls_method, label_col)),
-              'wb') as f:
+        feature_set = []
+        for feature_set_this_encoding in pipelines[bucket].steps[0][1].transformer_list:
+            for feature in feature_set_this_encoding[1].columns.tolist():
+                feature_set.append(feature)
+
+        feats = {}  # a dict to hold feature_name: feature_importance
+        for feature, importance in zip(feature_set, pipelines[bucket].named_steps.cls.cls.feature_importances_):
+            feats[feature] = importance  # add the name/value pair
+
+        importances = pd.DataFrame.from_dict(feats, orient='index').rename(columns={0: 'Gini-importance'})
+        importances = importances.sort_values(by='Gini-importance', ascending=False)
+        importances.to_csv(os.path.join(home_dir, feature_importance_dir, "feat_importance_%s_%s_%s_%s_%s.csv" %
+                                        (dataset_ref, method_name, cls_method, label_col, bucket)))
+
+    with open(pickle_file, 'wb') as f:
         pickle.dump(pipelines, f)
         pickle.dump(bucketer, f)
-        pickle.dump(dataset_ref, f)
-        pickle.dump(label_col, f)
+        pickle.dump(dataset_manager, f)
 
     prefix_lengths_test = dt_test_prefixes.groupby(dataset_manager.case_id_col).size()
 

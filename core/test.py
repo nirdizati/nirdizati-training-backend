@@ -6,7 +6,6 @@ from sys import argv
 import numpy as np
 import pandas as pd
 
-from DatasetManager import DatasetManager
 
 test_file = argv[1]
 pickle_model = argv[2]
@@ -18,12 +17,10 @@ pickles_dir = "../pkl/"
 with open(os.path.join(pickles_dir, '%s' % pickle_model), 'rb') as f:
     pipelines = pickle.load(f)
     bucketer = pickle.load(f)
-    dataset_ref = pickle.load(f)
-    label_col = pickle.load(f)
+    dataset_manager = pickle.load(f)
 
 ##### MAIN PART ######
 
-dataset_manager = DatasetManager(dataset_ref, label_col)
 dtypes = {col: "str" for col in dataset_manager.dynamic_cat_cols + dataset_manager.static_cat_cols +
           [dataset_manager.case_id_col, dataset_manager.timestamp_col]}
 for col in dataset_manager.dynamic_num_cols + dataset_manager.static_num_cols:
@@ -48,6 +45,7 @@ if bucket not in pipelines:  # TODO fix this
 else:
     # make actual predictions
     preds = pipelines[bucket].predict_proba(test)
-    preds = np.around(preds, decimals=3)
-    preds = max(0, np.asscalar(preds))  # if remaining time is predicted to be negative, make it zero
+    preds = np.around(np.asscalar(preds), decimals=3)
+    if dataset_manager.mode == "regr":
+        preds = max(0, preds)  # if remaining time is predicted to be negative, make it zero
     print(preds)

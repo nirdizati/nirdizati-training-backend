@@ -6,7 +6,8 @@ import numpy as np
 
 from sklearn.model_selection import KFold, StratifiedKFold
 
-dataset_params_dir = "dataset_params/"
+home_dir = os.environ['PYTHONPATH']
+dataset_params_dir = os.path.join(home_dir, "core/dataset_params/")
 
 class DatasetManager:
     
