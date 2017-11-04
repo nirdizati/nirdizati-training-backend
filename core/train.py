@@ -22,12 +22,12 @@ cls_method = argv[4]
 label_col = argv[5]
 
 dataset_ref = os.path.splitext(train_file)[0]
-home_dir = ""
-logs_dir = "../logdata/"
-training_params_dir = "training_params/"
-results_dir = "../results/"
-feature_importance_dir = "../results/feature_importance"
-pickles_dir = "../pkl/"
+home_dir = os.environ['PYTHONPATH']
+logs_dir = "logdata/"
+training_params_dir = "core/training_params/"
+results_dir = "results/validation/"
+feature_importance_dir = "results/feature_importance/"
+pickles_dir = "pkl/"
 
 best_params = pd.read_json(os.path.join(home_dir, training_params_dir, "%s.json" % dataset_ref), typ="series")
 
@@ -41,9 +41,9 @@ method_name = "%s_%s" % (bucket_method, cls_encoding)
 methods = encoding_dict[cls_encoding]
 
 outfile = os.path.join(home_dir, results_dir,
-                       "validation_results_%s_%s_%s_%s.csv" % (dataset_ref, method_name, cls_method, label_col))
+                       "validation_%s_%s_%s_%s.csv" % (dataset_ref, method_name, cls_method, label_col))
 
-pickle_file = os.path.join(pickles_dir, '%s_%s_%s_%s.pkl' % (dataset_ref, method_name, cls_method, label_col))
+pickle_file = os.path.join(home_dir, pickles_dir, '%s_%s_%s_%s.pkl' % (dataset_ref, method_name, cls_method, label_col))
 
 random_state = 22
 fillna = True
@@ -64,7 +64,7 @@ with open(outfile, 'w') as fout:
     else:
         dtypes[dataset_manager.label_col] = "str"  # if classification, preserve and do not interpret dtype of label
 
-    data = pd.read_csv(os.path.join(logs_dir, train_file), sep=";", dtype=dtypes)
+    data = pd.read_csv(os.path.join(home_dir, logs_dir, train_file), sep=";", dtype=dtypes)
     data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])
 
     # split data into training and validation sets
