@@ -70,7 +70,7 @@ with open(outfile, 'w') as fout:
 
     # consider prefix lengths until 90th percentile of case length
     min_prefix_length = 1
-    max_prefix_length = min(15, dataset_manager.get_pos_case_length_quantile(data, 0.98))
+    max_prefix_length = min(15, dataset_manager.get_pos_case_length_quantile(data, 0.9))
     del data
 
     # create prefix logs
@@ -136,8 +136,7 @@ with open(outfile, 'w') as fout:
               'wb') as f:
         pickle.dump(pipelines, f)
         pickle.dump(bucketer, f)
-        pickle.dump(dataset_ref, f)
-        pickle.dump(label_col, f)
+        pickle.dump(dataset_manager, f)
 
     prefix_lengths_test = dt_test_prefixes.groupby(dataset_manager.case_id_col).size()
 
