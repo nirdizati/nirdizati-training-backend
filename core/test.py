@@ -10,11 +10,11 @@ import pandas as pd
 test_file = argv[1]
 pickle_model = argv[2]
 
-logs_dir = "../logdata/"
-pickles_dir = "../pkl/"
+# logs_dir = "../logdata/"
+# pickles_dir = "../pkl/"
 
 # read in pickle file with predictive model and metadata
-with open(os.path.join(pickles_dir, '%s' % pickle_model), 'rb') as f:
+with open(pickle_model, 'rb') as f:
     pipelines = pickle.load(f)
     bucketer = pickle.load(f)
     dataset_manager = pickle.load(f)
@@ -31,7 +31,7 @@ if dataset_manager.mode == "regr":
 else:
     dtypes[dataset_manager.label_col] = "str"  # if classification, preserve and do not interpret dtype of label
 
-test = pd.read_json(os.path.join(logs_dir, test_file), orient='records', dtype=dtypes)
+test = pd.read_json(test_file, orient='records', dtype=dtypes)
 #test = test.drop(label_col, axis = 1)
 test[dataset_manager.timestamp_col] = pd.to_datetime(test[dataset_manager.timestamp_col])
 

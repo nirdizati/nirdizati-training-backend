@@ -8,8 +8,10 @@ import json
 train_file = argv[1]
 
 dataset_ref = os.path.splitext(train_file)[0]
-cv_results_dir = "../results/CV/"
-training_params_dir = "training_params/"
+home_dirs = os.environ['PYTHONPATH'].split(":")
+home_dir = home_dirs[0]
+cv_results_dir = os.path.join(home_dir, "results/CV/")
+training_params_dir = "core/training_params/"
 
 # read all files from directory to df       
 files = glob.glob("%s/CV_%s_*" % (cv_results_dir, dataset_ref))
@@ -107,5 +109,5 @@ for row in data_best[data_best.method.str.contains("prefix")][
         best_params[row[0]][row[1]][row[2]][row[3]][param] = value
 
 # write to file
-with open(os.path.join(training_params_dir, "%s.json" % dataset_ref), "w") as fout:
+with open(os.path.join(home_dir, training_params_dir, "%s.json" % dataset_ref), "w") as fout:
     json.dump(best_params, fout, indent=3)

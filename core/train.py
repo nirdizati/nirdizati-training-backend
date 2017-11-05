@@ -22,7 +22,8 @@ cls_method = argv[4]
 label_col = argv[5]
 
 dataset_ref = os.path.splitext(train_file)[0]
-home_dir = os.environ['PYTHONPATH']
+home_dirs = os.environ['PYTHONPATH'].split(":")
+home_dir = home_dirs[0] # if there are multiple PYTHONPATHs, choose the first
 logs_dir = "logdata/"
 training_params_dir = "core/training_params/"
 results_dir = "results/validation/"

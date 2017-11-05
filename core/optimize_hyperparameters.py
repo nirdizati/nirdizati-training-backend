@@ -21,9 +21,10 @@ cls_method = argv[4]
 label_col = argv[5]
 
 dataset_ref = os.path.splitext(train_file)[0]
-home_dir = ""
-logs_dir = "../logdata/"
-results_dir = "../results/CV/"
+home_dirs = os.environ['PYTHONPATH'].split(":")
+home_dir = home_dirs[0]
+logs_dir = "logdata/"
+results_dir = "results/CV/"
 
 if not os.path.exists(os.path.join(home_dir, results_dir)):
     os.makedirs(os.path.join(home_dir, results_dir))
@@ -88,7 +89,7 @@ with open(outfile, 'w') as fout:
     else:
         dtypes[dataset_manager.label_col] = "str" # if classification, preserve and do not interpret dtype of label
 
-    data = pd.read_csv(os.path.join(logs_dir, train_file), sep=";", dtype=dtypes)
+    data = pd.read_csv(os.path.join(home_dir, logs_dir, train_file), sep=";", dtype=dtypes)
     data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])
 
     # split data into train and test
