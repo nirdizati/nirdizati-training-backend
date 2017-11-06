@@ -1,1 +1,52 @@
-{"label_num_cols":["remtime"],"dynamic_cat_cols":["Activity","Diagnose","DiagnosticArtAstrup","DiagnosticBlood","DiagnosticECG","DiagnosticIC","DiagnosticLacticAcid","DiagnosticLiquor","DiagnosticOther","DiagnosticSputum","DiagnosticUrinaryCulture","DiagnosticUrinarySediment","DiagnosticXthorax","DisfuncOrg","Hypotensie","Hypoxie","InfectionSuspected","Infusion","Oligurie","org:group","SIRSCriteria2OrMore","SIRSCritHeartRate","SIRSCritLeucos","SIRSCritTachypnea","SIRSCritTemperature","weekday"],"static_cat_cols":[],"timestamp_col":"Complete Timestamp","label_cat_cols":[],"activity_col":"Activity","static_num_cols":["month"],"dynamic_num_cols":["Age","CRP","duration","hour","LacticAcid","Leucocytes"],"case_id_col":"Case ID"}
+{
+  "case_id_col": "Case ID",
+  "activity_col": "Activity",
+  "timestamp_col": "Complete Timestamp",
+  "dynamic_cat_cols": [
+    "Activity",
+    "Diagnose",
+    "org:group"
+  ],
+  "static_cat_cols": [
+    "DiagnosticArtAstrup",
+    "DiagnosticBlood",
+    "DiagnosticECG",
+    "DiagnosticIC",
+    "DiagnosticLacticAcid",
+    "DiagnosticLiquor",
+    "DiagnosticOther",
+    "DiagnosticSputum",
+    "DiagnosticUrinaryCulture",
+    "DiagnosticUrinarySediment",
+    "DiagnosticXthorax",
+    "DisfuncOrg",
+    "Hypotensie",
+    "Hypoxie",
+    "InfectionSuspected",
+    "Infusion",
+    "Oligurie",
+    "SIRSCritHeartRate",
+    "SIRSCritLeucos",
+    "SIRSCritTachypnea",
+    "SIRSCritTemperature",
+    "SIRSCriteria2OrMore"
+  ],
+  "dynamic_num_cols": [
+    "CRP",
+    "LacticAcid",
+    "Leucocytes",
+    "duration",
+    "month",
+    "weekday",
+    "hour"
+  ],
+  "static_num_cols": [
+    "Age"
+  ],
+  "label_num_cols":[
+    "remtime"
+  ],
+  "label_cat_cols":[
+
+  ]
+}
