@@ -1,1 +1,1 @@
-{"remtime":{"zero_laststate":{"rf":{"n_clusters":1,"max_features":0.75,"gbm_learning_rate":0,"n_estimators":300}}}}
+{"remtime":{"zero_laststate":{"rf":{"n_clusters":1,"max_features":0.75,"n_estimators":300}}}}
