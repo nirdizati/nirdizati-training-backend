@@ -26,26 +26,27 @@ This script assumes that you have a training configuration file in `core/trainin
   "target": {
       "bucketing_encoding": {
          "leaner": {
-            "n_clusters": ,
-            "n_estimators": ,
-            "max_features": ,
-            "learning_rate": 
+            "learning_rate":  // used for gbm and xgb
+            "max_depth": , // used for dt and xgb
+            "n_estimators": , // used for rf, gbm and xgb
+            "n_clusters": , // used for all (=1 if bucketing method != cluster, otherwise to be entered by user)
+            "colsample_bytree": , // used for xgb
+            "max_features": , // used for rf, gbm and dt
+            "subsample": // used for xgb
          }
       }
   }
 }
 ```
-
 Example:
 ```json
 {
    "remtime": {
       "zero_agg": {
          "rf": {
-            "n_clusters": 1,
-            "n_estimators": 100,
-            "max_features": 0.25,
-            "learning_rate": 0.03
+            "n_estimators": 300,
+            "max_features": 0.5,
+            "n_clusters": 1
          }
       }
   }
@@ -59,6 +60,16 @@ Output of the training script:
 * Data on feature importance - PredictiveMethods/results/feature_importance/feat_importance_{log-name-without-extension}_bucketing_encoding_learner_target.**csv**
 
 
+## How to choose default training parameters
+Bucketing - No bucketing (zero)
+Encoding - Frequency (agg)
+Predictor - XGBoost
+
+Default hyperparameters:
+* Random forest: Number of estimators 300, max_features 0.5
+* Gradient boosting: Number of estimators 300, max_features 0.5, learning rate 0.1
+* Decision tree: max_features 0.5, max_depth 5
+* XGBoost: Number of estimators 300, learning rate 0.03, subsample row ration 0.7, subsample column ratio 0.7, max_depth 5
 
 ## Test
 ```bash
