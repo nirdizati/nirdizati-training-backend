@@ -22,15 +22,11 @@ class DatasetManager:
         self.activity_col = dataset_params[u'activity_col']
         self.timestamp_col = dataset_params[u'timestamp_col']
 
-        self.dynamic_cat_cols = dataset_params[u'dynamic_cat_cols']
-        self.static_cat_cols = dataset_params[u'static_cat_cols']
-        self.dynamic_num_cols = dataset_params[u'dynamic_num_cols']
-        self.static_num_cols = dataset_params[u'static_num_cols']
+        # possible names for label columns
+        self.label_cat_cols = ['label', 'label2']
+        self.label_num_cols = ['remtime']
 
-        # attributes that generally become known only after case completes, should not be used for predictions
-        self.label_cat_cols = dataset_params[u'label_cat_cols']
-        self.label_num_cols = dataset_params[u'label_num_cols']
-
+        # determine prediction problem - regression or classification
         if label_col in self.label_cat_cols:
             print("Your prediction target is categorical, classification will be applied")
             self.mode = "class"
@@ -39,10 +35,37 @@ class DatasetManager:
             print("Your prediction target is numeric, regression will be applied")
             self.mode = "regr"
         else:
-            sys.exit("This label column is undefined in dataset params")
+            sys.exit("I don't know how to predict this target variable")
+
+        # define features for predictions
+        predictor_cols = ["dynamic_cat_cols", "static_cat_cols", "dynamic_num_cols", "static_num_cols"]
+        for predictor_col in predictor_cols:
+            for label in self.label_cat_cols + self.label_num_cols:
+                if label in dataset_params[predictor_col]:
+                    print("%s found in %s, it will be removed (not a feature)" % (label, predictor_col))
+                    dataset_params[predictor_col].remove(label)  # exclude label attributes from features
+            setattr(self, predictor_col, dataset_params[predictor_col])
 
 
-    def split_data(self, data, train_ratio):  
+    def add_remtime(self, group):
+        group = group.sort_values(self.timestamp_col, ascending=True)
+        end_date = group[self.timestamp_col].iloc[-1]
+        tmp = end_date - group[self.timestamp_col]
+        tmp = tmp.fillna(0)
+        group["remtime"] = tmp.apply(lambda x: float(x / np.timedelta64(1, 's')))  # s is for seconds
+        return group
+
+    def get_median_case_duration(self, data):
+        case_durations = data.groupby(self.case_id_col)['remtime'].max()
+        return np.median(case_durations)
+
+    def assign_label(self, group, threshold):
+        group = group.sort_values(self.timestamp_col, ascending=True)
+        case_duration = group["remtime"].iloc[0]
+        group[self.label_col] = "false" if case_duration < threshold else "true"
+        return group
+
+    def split_data(self, data, train_ratio):
         # split into train and test using temporal split
 
         grouped = data.groupby(self.case_id_col)

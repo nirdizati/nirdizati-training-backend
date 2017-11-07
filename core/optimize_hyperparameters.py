@@ -52,11 +52,18 @@ if cls_method == "rf":
 elif cls_method == "gbm":
     cls_params = {'n_estimators':[100],
                   'max_features':["sqrt", 0.25],
-                  'gbm_learning_rate':[0.1, 0.2]}
+                  'learning_rate':[0.1, 0.2]}
 
 elif cls_method == "dt":
     cls_params = {'max_features':[0.1, 0.6, 0.9],
                   'max_depth':[5, 10, 20]}
+
+elif cls_method == "xgb":
+    cls_params = {'n_estimators':[100, 300],
+                  'learning_rate':[0.02, 0.04],
+                  'subsample': [0.7],
+                  'max_depth': [3],
+                  'colsample_bytree':[0.6]}
 
 bucketer_params_names = list(bucketer_params.keys())
 cls_params_names = list(cls_params.keys())
@@ -91,6 +98,15 @@ with open(outfile, 'w') as fout:
 
     data = pd.read_csv(os.path.join(home_dir, logs_dir, train_file), sep=";", dtype=dtypes)
     data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])
+
+    # add label column to the dataset if it does not exist yet
+    if label_col not in data.columns:
+        print("column %s does not exist in the log, let's create it" % label_col)
+        if dataset_manager.mode == "regr":
+            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.add_remtime)
+        else:
+            median_case_duration = dataset_manager.get_median_case_duration(data)
+            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, median_case_duration)
 
     # split data into train and test
     train, _ = dataset_manager.split_data(data, train_ratio)

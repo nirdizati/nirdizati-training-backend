@@ -1,5 +1,6 @@
 ## Training
 ```bash
+export PYTHONPATH=....../PredictiveMethods/
 cd PredictiveMethods/core/
 python train.py log_name_csv bucketing_type encoding_type learner_type target 
 ```
@@ -7,7 +8,7 @@ python train.py log_name_csv bucketing_type encoding_type learner_type target
 * log_name_csv - name of the file as in `logdata` directory 
 * bucketing_type - `zero`, `cluster`, `state` or `prefix`
 * encoding_type - `agg`, `laststate`, `index` or `combined`
-* learner_type - `rf`, `gbm` or `dt`
+* learner_type - `rf` for random forest, `gbm` for gradient boosting, `dt` for decision tree or `xgb` for extreme gradient boosting
 * target - name of the column that you need to predict, e.g. `remtime` or `label` (check if it exists in the log)
 
 Example:
@@ -21,49 +22,65 @@ This script assumes that you have a training configuration file in `core/trainin
 ` with the following structure:
 
 ```json
-   target: {
-      bucketing_encoding: {
-         leaner: {
-            "n_clusters": ,
-            "n_estimators": ,
-            "max_features": ,
-            "gbm_learning_rate": 
+{
+  "target": {
+      "bucketing_encoding": {
+         "leaner": {
+            "learning_rate":  // used for gbm and xgb
+            "max_depth": , // used for dt and xgb
+            "n_estimators": , // used for rf, gbm and xgb
+            "n_clusters": , // used for all (=1 if bucketing method != cluster, otherwise to be entered by user)
+            "colsample_bytree": , // used for xgb
+            "max_features": , // used for rf, gbm and dt
+            "subsample": // used for xgb
          }
       }
   }
+}
 ```
-
 Example:
 ```json
+{
    "remtime": {
       "zero_agg": {
          "rf": {
-            "n_clusters": 1,
-            "n_estimators": 100,
-            "max_features": 0.25,
-            "gbm_learning_rate": 0.03
+            "n_estimators": 300,
+            "max_features": 0.5,
+            "n_clusters": 1
          }
       }
   }
+}
 ```
 
 Output of the training script:
 
 * Fitted model - PredictiveMethods/pkl/{log-name-without-extension}_bucketing_encoding_learner_target.**pkl**
-* Validation results - PredictiveMethods/results/final_results_{log-name-without-extension}_bucketing_encoding_learner_target.**csv**
+* Validation results - PredictiveMethods/results/validation/validation_{log-name-without-extension}_bucketing_encoding_learner_target.**csv**
+* Data on feature importance - PredictiveMethods/results/feature_importance/feat_importance_{log-name-without-extension}_bucketing_encoding_learner_target.**csv**
 
+
+## How to choose default training parameters
+Bucketing - No bucketing (zero)
+Encoding - Frequency (agg)
+Predictor - XGBoost
+
+Default hyperparameters:
+* Random forest: Number of estimators 300, max_features 0.5
+* Gradient boosting: Number of estimators 300, max_features 0.5, learning rate 0.1
+* Decision tree: max_features 0.5, max_depth 5
+* XGBoost: Number of estimators 300, learning rate 0.03, subsample row ration 0.7, subsample column ratio 0.7, max_depth 5
 
 ## Test
 ```bash
+export PYTHONPATH=....../PredictiveMethods/
 cd PredictiveMethods/core/
-python test.py pickle_model_filename 
+python test.py path_to_prefix.csv path_to_pickle_model_filename 
 ```
-
-`pickle_model_filename` should match an existing file under `pkl` folder
 
 Example:
 ```bash
-python test.py test_BPIC15_4.json BPIC15_4_zero_agg_rf_remtime.pkl
+python test.py test_BPIC15_4.json ../pkl/BPIC15_4_zero_agg_rf_remtime.pkl
 ```
 
 The output should be printed to stdout

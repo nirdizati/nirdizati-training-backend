@@ -15,11 +15,5 @@
   ],
   "static_num_cols": [
     "AMOUNT_REQ"
-  ],
-  "label_cat_cols":[
-    "label"
-  ],
-  "label_num_cols":[
-    "remtime"
   ]
 }
