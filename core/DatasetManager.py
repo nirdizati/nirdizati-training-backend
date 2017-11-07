@@ -22,15 +22,11 @@ class DatasetManager:
         self.activity_col = dataset_params[u'activity_col']
         self.timestamp_col = dataset_params[u'timestamp_col']
 
-        self.dynamic_cat_cols = dataset_params[u'dynamic_cat_cols']
-        self.static_cat_cols = dataset_params[u'static_cat_cols']
-        self.dynamic_num_cols = dataset_params[u'dynamic_num_cols']
-        self.static_num_cols = dataset_params[u'static_num_cols']
-
         # possible names for label columns
         self.label_cat_cols = ['label', 'label2']
         self.label_num_cols = ['remtime']
 
+        # determine prediction problem - regression or classification
         if label_col in self.label_cat_cols:
             print("Your prediction target is categorical, classification will be applied")
             self.mode = "class"
@@ -40,6 +36,15 @@ class DatasetManager:
             self.mode = "regr"
         else:
             sys.exit("I don't know how to predict this target variable")
+
+        # define features for predictions
+        predictor_cols = ["dynamic_cat_cols", "static_cat_cols", "dynamic_num_cols", "static_num_cols"]
+        for predictor_col in predictor_cols:
+            for label in self.label_cat_cols + self.label_num_cols:
+                if label in dataset_params[predictor_col]:
+                    print("%s found in %s, it will be removed (not a feature)" % (label, predictor_col))
+                    dataset_params[predictor_col].remove(label)  # exclude label attributes from features
+            setattr(self, predictor_col, dataset_params[predictor_col])
 
 
     def add_remtime(self, group):
