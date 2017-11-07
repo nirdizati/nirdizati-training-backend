@@ -68,6 +68,15 @@ with open(outfile, 'w') as fout:
     data = pd.read_csv(os.path.join(home_dir, logs_dir, train_file), sep=";", dtype=dtypes)
     data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])
 
+    # add label column to the dataset if it does not exist yet
+    if label_col not in data.columns:
+        print("column %s does not exist in the log, let's create it" % label_col)
+        if dataset_manager.mode == "regr":
+            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.add_remtime)
+        else:
+            median_case_duration = dataset_manager.get_median_case_duration(data)
+            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, median_case_duration)
+
     # split data into training and validation sets
     train, test = dataset_manager.split_data(data, train_ratio=0.80)
     # train = train.sort_values(dataset_manager.timestamp_col, ascending=True, kind='mergesort')

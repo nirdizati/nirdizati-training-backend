@@ -42,11 +42,5 @@
   ],
   "static_num_cols": [
     "Age"
-  ],
-  "label_num_cols":[
-    "remtime"
-  ],
-  "label_cat_cols":[
-
   ]
 }
