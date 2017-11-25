@@ -30,7 +30,7 @@ class DatasetManager:
         if label_col in self.label_cat_cols:
             print("Your prediction target is categorical, classification will be applied")
             self.mode = "class"
-            self.pos_label = "true"
+            self.pos_label = "true"  #TODO include pos_label into dataset params as positive labels can be marked by any word
         elif label_col in self.label_num_cols:
             print("Your prediction target is numeric, regression will be applied")
             self.mode = "regr"
@@ -94,10 +94,7 @@ class DatasetManager:
 
 
     def get_pos_case_length_quantile(self, data, quantile=0.90):
-        if self.mode == "regr":
-            return int(np.ceil(data.groupby(self.case_id_col).size().quantile(quantile)))
-        else:
-            return int(np.ceil(data[data[self.label_col]==self.pos_label].groupby(self.case_id_col).size().quantile(quantile)))
+        return int(np.floor(data.groupby(self.case_id_col).size().quantile(quantile)))
 
 
     def get_indexes(self, data):

@@ -1,4 +1,5 @@
 import numpy as np
+from numpy import array
 
 class ClassifierWrapper(object):
     
@@ -27,7 +28,7 @@ class ClassifierWrapper(object):
     def predict_proba(self, X, y=None):
 
         if self.hardcoded_prediction is not None:
-            return [self.hardcoded_prediction] * X.shape[0]
+            return array([self.hardcoded_prediction] * X.shape[0])
                         
         elif self.mode == "regr":
             preds = self.cls.predict(X)

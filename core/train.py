@@ -27,6 +27,7 @@ home_dir = home_dirs[0] # if there are multiple PYTHONPATHs, choose the first
 logs_dir = "logdata/"
 training_params_dir = "core/training_params/"
 results_dir = "results/validation/"
+detailed_results_dir = "results/detailed/"
 feature_importance_dir = "results/feature_importance/"
 pickles_dir = "pkl/"
 
@@ -43,6 +44,8 @@ methods = encoding_dict[cls_encoding]
 
 outfile = os.path.join(home_dir, results_dir,
                        "validation_%s_%s_%s_%s.csv" % (dataset_ref, method_name, cls_method, label_col))
+detailed_results_file = os.path.join(home_dir, detailed_results_dir,
+                       "detailed_%s_%s_%s_%s.csv" % (dataset_ref, method_name, cls_method, label_col))
 
 pickle_file = os.path.join(home_dir, pickles_dir, '%s_%s_%s_%s.pkl' % (dataset_ref, method_name, cls_method, label_col))
 
@@ -50,7 +53,8 @@ random_state = 22
 fillna = True
 n_min_cases_in_bucket = 30
 
-##### MAIN PART ######    
+##### MAIN PART ######
+detailed_results = pd.DataFrame()
 with open(outfile, 'w') as fout:
     fout.write("%s,%s,%s,%s,%s,%s\n" % ("label_col", "method", "cls", "nr_events", "metric", "score"))
 
@@ -145,6 +149,14 @@ with open(outfile, 'w') as fout:
 
         pipelines[bucket].fit(dt_train_bucket, train_y)
 
+        if pipelines[bucket].named_steps.cls.hardcoded_prediction is not None:
+            print("Hardcoded predictions were used in bucket %s, no feature importance available" % bucket)
+            continue
+
+        if np.isnan(np.sum(pipelines[bucket].named_steps.cls.cls.feature_importances_)):
+            print("No Feature importance available for bucket %d" % bucket)
+            continue
+
         feature_set = []
         for feature_set_this_encoding in pipelines[bucket].steps[0][1].transformer_list:
             for feature in feature_set_this_encoding[1].columns.tolist():
@@ -205,23 +217,28 @@ with open(outfile, 'w') as fout:
                 # make actual predictions
                 preds_bucket = pipelines[bucket].predict_proba(dt_test_bucket)
 
+            preds_bucket = preds_bucket.clip(min=0)  # if remaining time is predicted to be negative, make it zero
             preds.extend(preds_bucket)
 
             # extract actual label values
             test_y_bucket = dataset_manager.get_label_numeric(dt_test_bucket)  # one row per case
             test_y.extend(test_y_bucket)
 
+            case_ids = list(dt_test_bucket.groupby(dataset_manager.case_id_col).first().index)
+            current_results = pd.DataFrame({"label_col": label_col, "method": method_name, "cls": cls_method, "nr_events": nr_events, "predicted": preds_bucket, "actual": test_y_bucket, "case_id": case_ids})
+            detailed_results = pd.concat([detailed_results, current_results])
+
         score = {}
-        if len(set(test_y)) < 2:
-            score = {"score1": 0, "score2": 0}
-        elif dataset_manager.mode == "regr":
+        if dataset_manager.mode == "regr":
             score["mae"] = mean_absolute_error(test_y, preds)
             score["r2"] = r2_score(test_y, preds)
+        elif len(set(test_y)) < 2:
+            score = {"auc": 0, "fscore": 0}
         else:
             score["auc"] = roc_auc_score(test_y, preds)
             _, _, score["fscore"], _ = precision_recall_fscore_support(test_y,
-                                                                       [0 if pred < 0.5 else 1 for pred in preds],
-                                                                       average="binary")
+                                                                           [0 if pred < 0.5 else 1 for pred in preds],
+                                                                           average="binary")
 
         fout.write("%s,%s,%s,%s,%s,%s\n" % (label_col, method_name, cls_method, nr_events,
                                             list(score)[0], list(score.values())[0]))
@@ -229,3 +246,5 @@ with open(outfile, 'w') as fout:
                                             list(score)[1], list(score.values())[1]))
 
     print("\n")
+
+detailed_results.to_csv(detailed_results_file, sep=",", index=False)
