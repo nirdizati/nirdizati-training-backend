@@ -5,8 +5,8 @@ from sys import argv
 import numpy as np
 import pandas as pd
 
-from sklearn.metrics import mean_absolute_error, r2_score
-from sklearn.metrics import roc_auc_score, precision_recall_fscore_support
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.metrics import f1_score, accuracy_score, log_loss
 from sklearn.pipeline import Pipeline, FeatureUnion
 
 import BucketFactory
@@ -72,13 +72,14 @@ with open(outfile, 'w') as fout:
     data = pd.read_csv(os.path.join(home_dir, logs_dir, train_file), sep=";", dtype=dtypes)
     data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])
 
+    median_case_duration = dataset_manager.get_median_case_duration(data)
+
     # add label column to the dataset if it does not exist yet
     if label_col not in data.columns:
         print("column %s does not exist in the log, let's create it" % label_col)
         if dataset_manager.mode == "regr":
             data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.add_remtime)
         else:
-            median_case_duration = dataset_manager.get_median_case_duration(data)
             data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, median_case_duration)
 
     # split data into training and validation sets
@@ -87,7 +88,7 @@ with open(outfile, 'w') as fout:
 
     # consider prefix lengths until 90th percentile of case length
     min_prefix_length = 1
-    max_prefix_length = min(15, dataset_manager.get_pos_case_length_quantile(data, 0.9))
+    max_prefix_length = min(15, dataset_manager.get_case_length_quantile(data, 0.9))
     del data
 
     # create prefix logs
@@ -140,7 +141,7 @@ with open(outfile, 'w') as fout:
         relevant_cases_bucket = dataset_manager.get_indexes(dt_train_prefixes)[bucket_assignments_train == bucket]
         dt_train_bucket = dataset_manager.get_relevant_data_by_indexes(dt_train_prefixes,
                                                                        relevant_cases_bucket)  # one row per event
-        train_y = dataset_manager.get_label_numeric(dt_train_bucket)
+        train_y = dataset_manager.get_label(dt_train_bucket)
 
         feature_combiner = FeatureUnion(
             [(method, EncoderFactory.get_encoder(method, **cls_encoder_args)) for method in methods])
@@ -168,7 +169,7 @@ with open(outfile, 'w') as fout:
 
         importances = pd.DataFrame.from_dict(feats, orient='index').rename(columns={0: 'Gini-importance'})
         importances = importances.sort_values(by='Gini-importance', ascending=False)
-        importances.to_csv(os.path.join(home_dir, feature_importance_dir, "feat_importance_%s_%s_%s_%s_%s.csv" %
+        importances.head(20).to_csv(os.path.join(home_dir, feature_importance_dir, "feat_importance_%s_%s_%s_%s_%s.csv" %
                                         (dataset_ref, method_name, cls_method, label_col, bucket)))
 
     with open(pickle_file, 'wb') as f:
@@ -221,8 +222,13 @@ with open(outfile, 'w') as fout:
             preds.extend(preds_bucket)
 
             # extract actual label values
-            test_y_bucket = dataset_manager.get_label_numeric(dt_test_bucket)  # one row per case
+            test_y_bucket = dataset_manager.get_label(dt_test_bucket)  # one row per case
             test_y.extend(test_y_bucket)
+
+            if nr_events == 1:
+                continue
+            elif dataset_manager.mode == "class":
+                preds_bucket = pipelines[bucket]._final_estimator.cls.classes_[preds_bucket.argmax(axis=1)]
 
             case_ids = list(dt_test_bucket.groupby(dataset_manager.case_id_col).first().index)
             current_results = pd.DataFrame({"label_col": label_col, "method": method_name, "cls": cls_method, "nr_events": nr_events, "predicted": preds_bucket, "actual": test_y_bucket, "case_id": case_ids})
@@ -231,19 +237,19 @@ with open(outfile, 'w') as fout:
         score = {}
         if dataset_manager.mode == "regr":
             score["mae"] = mean_absolute_error(test_y, preds)
-            score["r2"] = r2_score(test_y, preds)
+            score["rmse"] = np.sqrt(mean_squared_error(test_y, preds))
+            score["nmae"] = score["mae"] / median_case_duration
+            score["nrmse"] = score["rmse"] / median_case_duration
         elif len(set(test_y)) < 2:
-            score = {"auc": 0, "fscore": 0}
+            score = {"acc":0, "f1": 0, "logloss": 0}
         else:
-            score["auc"] = roc_auc_score(test_y, preds)
-            _, _, score["fscore"], _ = precision_recall_fscore_support(test_y,
-                                                                           [0 if pred < 0.5 else 1 for pred in preds],
-                                                                           average="binary")
+            preds_labels = pipelines[bucket]._final_estimator.cls.classes_[np.asarray(preds).argmax(axis=1)]
+            score["acc"] = accuracy_score(test_y, preds_labels)
+            score["f1"] = f1_score(test_y, preds_labels, average='weighted')
+            score["logloss"] = log_loss(test_y, preds)
 
-        fout.write("%s,%s,%s,%s,%s,%s\n" % (label_col, method_name, cls_method, nr_events,
-                                            list(score)[0], list(score.values())[0]))
-        fout.write("%s,%s,%s,%s,%s,%s\n" % (label_col, method_name, cls_method, nr_events,
-                                            list(score)[1], list(score.values())[1]))
+        for k, v in score.items():
+            fout.write("%s,%s,%s,%s,%s,%s\n" % (label_col, method_name, cls_method, nr_events, k, v))
 
     print("\n")
 

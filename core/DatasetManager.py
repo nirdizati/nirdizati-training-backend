@@ -30,7 +30,6 @@ class DatasetManager:
         if label_col in self.label_cat_cols:
             print("Your prediction target is categorical, classification will be applied")
             self.mode = "class"
-            self.pos_label = "true"  #TODO include pos_label into dataset params as positive labels can be marked by any word
         elif label_col in self.label_num_cols:
             print("Your prediction target is numeric, regression will be applied")
             self.mode = "regr"
@@ -93,7 +92,7 @@ class DatasetManager:
         return dt_prefixes
 
 
-    def get_pos_case_length_quantile(self, data, quantile=0.90):
+    def get_case_length_quantile(self, data, quantile=0.90):
         return int(np.floor(data.groupby(self.case_id_col).size().quantile(quantile)))
 
 
@@ -109,19 +108,9 @@ class DatasetManager:
         else:
             return data.groupby(self.case_id_col).first()[self.label_col]
     
-    def get_label_numeric(self, data):
-        y = self.get_label(data) # one row per case
-        if self.mode == "regr":
-            return y
-        elif self.mode == "class":
-            return [1 if label == self.pos_label else 0 for label in y]
-        else:
-            print("Unrecognized training mode")
-            return None
-    
     def get_class_ratio(self, data):
         class_freqs = data[self.label_col].value_counts()
-        return class_freqs[self.pos_label] / class_freqs.sum()
+        return class_freqs / class_freqs.sum()
     
     def get_stratified_split_generator(self, data, n_splits=5, shuffle=True, random_state=22):
         grouped_firsts = data.groupby(self.case_id_col, as_index=False).first()

@@ -170,7 +170,7 @@ with open(outfile, 'w') as fout:
                     print("Fitting pipeline for bucket %s..."%bucket)
                     relevant_cases_bucket = dataset_manager.get_indexes(dt_train_prefixes)[bucket_assignments_train == bucket]
                     dt_train_bucket = dataset_manager.get_relevant_data_by_indexes(dt_train_prefixes, relevant_cases_bucket) # one row per event
-                    train_y = dataset_manager.get_label_numeric(dt_train_bucket)
+                    train_y = dataset_manager.get_label(dt_train_bucket)
 
                     feature_combiner = FeatureUnion([(method, EncoderFactory.get_encoder(method, **cls_encoder_args)) for method in methods])
                     pipelines[bucket] = Pipeline([('encoder', feature_combiner), ('cls', ClassifierFactory.get_classifier(cls_method, **cls_args))])
@@ -225,7 +225,7 @@ with open(outfile, 'w') as fout:
                         preds.extend(preds_bucket)
 
                         # extract actual label values
-                        test_y_bucket = dataset_manager.get_label_numeric(dt_test_bucket) # one row per case
+                        test_y_bucket = dataset_manager.get_label(dt_test_bucket) # one row per case
                         test_y.extend(test_y_bucket)
 
                     score = {}

@@ -35,8 +35,9 @@ class ClassifierWrapper(object):
             return preds
 
         elif self.mode == "class":
-            preds_pos_label_idx = np.where(self.cls.classes_ == 1)[0][0]
-            preds = self.cls.predict_proba(X)[:,preds_pos_label_idx]
+            # preds_pos_label_idx = np.where(self.cls.classes_ == 1)[0][0]
+            # preds = self.cls.predict_proba(X)[:,preds_pos_label_idx]
+            preds = self.cls.predict_proba(X)
             return preds
 
         else:
