@@ -65,7 +65,7 @@ Bucketing - No bucketing (zero)
 Encoding - Frequency (agg)
 Predictor - XGBoost
 
-Default hyperParameters:
+Default hyperparameters:
 * Random forest: Number of estimators 300, max_features 0.5
 * Gradient boosting: Number of estimators 300, max_features 0.5, learning rate 0.1
 * Decision tree: max_features 0.5, max_depth 5
