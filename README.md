@@ -9,7 +9,7 @@ python train.py log_name_csv bucketing_type encoding_type learner_type target
 * bucketing_type - `zero`, `cluster`, `state` or `prefix`
 * encoding_type - `agg`, `laststate`, `index` or `combined`
 * learner_type - `rf` for random forest, `gbm` for gradient boosting, `dt` for decision tree or `xgb` for extreme gradient boosting
-* target - name of the column that you need to predict, e.g. `remtime` or `label` (check if it exists in the log)
+* target - *name of the column* that you want to predict. The prediction problem type (classification or regression) is determine automatically based on the number of unique levels of a target variable and whether or not it can be parsed as a numeric series. Two special targets are `remtime` or `label` (for the remaining time and case outcome based on the median case duration). Note that keywords `remtime` and `label` are reserved, i.e if there is already a column with such names, it will be ignored, but remaining time and outcome will be predicted instead. 
 
 Example:
 

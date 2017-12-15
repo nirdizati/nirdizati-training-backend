@@ -9,6 +9,7 @@ from sklearn.model_selection import KFold, StratifiedKFold
 home_dirs = os.environ['PYTHONPATH'].split(":")
 home_dir = home_dirs[0]
 dataset_params_dir = os.path.join(home_dir, "core/dataset_params/")
+unique_values_threshold = 10  # threshold to distinguish classification vs regression
 
 class DatasetManager:
     
@@ -22,29 +23,27 @@ class DatasetManager:
         self.activity_col = dataset_params[u'activity_col']
         self.timestamp_col = dataset_params[u'timestamp_col']
 
-        # possible names for label columns
-        self.label_cat_cols = ['label', 'label2']
-        self.label_num_cols = ['remtime']
-
-        # determine prediction problem - regression or classification
-        if label_col in self.label_cat_cols:
-            print("Your prediction target is categorical, classification will be applied")
-            self.mode = "class"
-        elif label_col in self.label_num_cols:
-            print("Your prediction target is numeric, regression will be applied")
-            self.mode = "regr"
-        else:
-            sys.exit("I don't know how to predict this target variable")
-
         # define features for predictions
         predictor_cols = ["dynamic_cat_cols", "static_cat_cols", "dynamic_num_cols", "static_num_cols"]
         for predictor_col in predictor_cols:
-            for label in self.label_cat_cols + self.label_num_cols:
-                if label in dataset_params[predictor_col]:
-                    print("%s found in %s, it will be removed (not a feature)" % (label, predictor_col))
-                    dataset_params[predictor_col].remove(label)  # exclude label attributes from features
+            if label_col in dataset_params[predictor_col]:
+                print("%s found in %s, it will be removed (not a feature)" % (label_col, predictor_col))
+                dataset_params[predictor_col].remove(label_col)  # exclude label attributes from features
             setattr(self, predictor_col, dataset_params[predictor_col])
 
+    def determine_mode(self, data):
+        if data[self.label_col].nunique() < unique_values_threshold:
+            print("less than %s unique values in target variable, classification will be applied" % unique_values_threshold)
+            mode = "class"
+        else:
+            try:
+                data[self.label_col].astype(float)
+                print("%s or more unique numeric values, regression will be applied" % unique_values_threshold)
+                mode = "regr"
+            except ValueError:
+                print("%s or more unique categorical values, classification will be applied" % unique_values_threshold)
+                mode = "class"
+        return mode
 
     def add_remtime(self, group):
         group = group.sort_values(self.timestamp_col, ascending=True)
@@ -77,13 +76,13 @@ class DatasetManager:
         return (train, test)
 
 
-    def generate_prefix_data(self, data, min_length, max_length):
+    def generate_prefix_data(self, data, min_length, max_length, comparator):
         # generate prefix data (each possible prefix becomes a trace)
         data['case_length'] = data.groupby(self.case_id_col)[self.activity_col].transform(len)
 
-        dt_prefixes = data[data['case_length'] >= min_length].groupby(self.case_id_col).head(min_length)
+        dt_prefixes = data[comparator(data['case_length'], min_length)].groupby(self.case_id_col).head(min_length)
         for nr_events in range(min_length+1, max_length+1):
-            tmp = data[data['case_length'] >= nr_events].groupby(self.case_id_col).head(nr_events)
+            tmp = data[comparator(data['case_length'], nr_events)].groupby(self.case_id_col).head(nr_events)
             tmp[self.case_id_col] = tmp[self.case_id_col].apply(lambda x: "%s_%s"%(x, nr_events))
             dt_prefixes = pd.concat([dt_prefixes, tmp], axis=0)
         
@@ -102,19 +101,21 @@ class DatasetManager:
     def get_relevant_data_by_indexes(self, data, indexes):
         return data[data[self.case_id_col].isin(indexes)]
 
-    def get_label(self, data):
-        if self.mode == "regr":
+    def get_label(self, data, mode):
+        if self.label_col == "remtime":
+            # remtime is dynamic, take the latest (smallest) value
             return data.groupby(self.case_id_col).min()[self.label_col]
         else:
+            # for regression, we assume the prediction target is a static case attribute
             return data.groupby(self.case_id_col).first()[self.label_col]
     
     def get_class_ratio(self, data):
         class_freqs = data[self.label_col].value_counts()
         return class_freqs / class_freqs.sum()
     
-    def get_stratified_split_generator(self, data, n_splits=5, shuffle=True, random_state=22):
+    def get_stratified_split_generator(self, data, mode, n_splits=5, shuffle=True, random_state=22):
         grouped_firsts = data.groupby(self.case_id_col, as_index=False).first()
-        skf = KFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state) if self.mode == "regr" else StratifiedKFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state)
+        skf = KFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state) if mode == "regr" else StratifiedKFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state)
         
         for train_index, test_index in skf.split(grouped_firsts, grouped_firsts[self.label_col]):
             current_train_names = grouped_firsts[self.case_id_col][train_index]

@@ -1,8 +1,10 @@
 import os
 import pickle
 from sys import argv
+import operator
 
 import numpy as np
+from numpy import array
 import pandas as pd
 
 from sklearn.metrics import mean_absolute_error, mean_squared_error
@@ -64,23 +66,24 @@ with open(outfile, 'w') as fout:
     for col in dataset_manager.dynamic_num_cols + dataset_manager.static_num_cols:
         dtypes[col] = "float"
 
-    if dataset_manager.mode == "regr":
-        dtypes[dataset_manager.label_col] = "float"  # if regression, target value is float
-    else:
-        dtypes[dataset_manager.label_col] = "str"  # if classification, preserve and do not interpret dtype of label
-
     data = pd.read_csv(os.path.join(home_dir, logs_dir, train_file), sep=";", dtype=dtypes)
     data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])
 
+    if "remtime" not in data.columns:
+        print("Remaining time column is not found, will be added now")
+        data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.add_remtime)
     median_case_duration = dataset_manager.get_median_case_duration(data)
 
     # add label column to the dataset if it does not exist yet
-    if label_col not in data.columns:
-        print("column %s does not exist in the log, let's create it" % label_col)
-        if dataset_manager.mode == "regr":
-            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.add_remtime)
-        else:
-            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, median_case_duration)
+    if label_col == "remtime":  # prediction of remaining time
+        mode = "regr"
+    elif label_col == "label":  # prediction of a label wrt median case duration #TODO give it a better name - "label" may exist
+        mode = "class"
+        data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, median_case_duration)
+    elif label_col in data.columns:  # prediction of existing column
+        mode = dataset_manager.determine_mode(data)
+    else:
+        print("Undefined target variable")
 
     # split data into training and validation sets
     train, test = dataset_manager.split_data(data, train_ratio=0.80)
@@ -92,8 +95,9 @@ with open(outfile, 'w') as fout:
     del data
 
     # create prefix logs
-    dt_train_prefixes = dataset_manager.generate_prefix_data(train, min_prefix_length, max_prefix_length)
-    dt_test_prefixes = dataset_manager.generate_prefix_data(test, min_prefix_length, max_prefix_length)
+    # cases that have just finished are included in the training set, but not in the test
+    dt_train_prefixes = dataset_manager.generate_prefix_data(train, min_prefix_length, max_prefix_length, comparator=operator.ge)
+    dt_test_prefixes = dataset_manager.generate_prefix_data(test, min_prefix_length, max_prefix_length, comparator=operator.gt)
 
     print(dt_train_prefixes.shape)
     print(dt_test_prefixes.shape)
@@ -133,7 +137,7 @@ with open(outfile, 'w') as fout:
         else:
             cls_args = {k: v for k, v in best_params[label_col][method_name][cls_method].items() if
                         k not in ['n_clusters']}
-        cls_args['mode'] = dataset_manager.mode
+        cls_args['mode'] = mode
         cls_args['random_state'] = random_state
         cls_args['min_cases_for_training'] = n_min_cases_in_bucket
 
@@ -141,7 +145,7 @@ with open(outfile, 'w') as fout:
         relevant_cases_bucket = dataset_manager.get_indexes(dt_train_prefixes)[bucket_assignments_train == bucket]
         dt_train_bucket = dataset_manager.get_relevant_data_by_indexes(dt_train_prefixes,
                                                                        relevant_cases_bucket)  # one row per event
-        train_y = dataset_manager.get_label(dt_train_bucket)
+        train_y = dataset_manager.get_label(dt_train_bucket, mode=mode)
 
         feature_combiner = FeatureUnion(
             [(method, EncoderFactory.get_encoder(method, **cls_encoder_args)) for method in methods])
@@ -210,9 +214,9 @@ with open(outfile, 'w') as fout:
             elif bucket not in pipelines:
                 # regression - use mean value (in training set) as prediction
                 # classification - use the historical class ratio
-                avg_target_value = [np.mean(train["remtime"])] if dataset_manager.mode == "regr" else [
+                avg_target_value = [np.mean(train["remtime"])] if mode == "regr" else [
                     dataset_manager.get_class_ratio(train)]
-                preds_bucket = avg_target_value * len(relevant_cases_bucket)
+                preds_bucket = array(avg_target_value * len(relevant_cases_bucket))
 
             else:
                 # make actual predictions
@@ -222,12 +226,12 @@ with open(outfile, 'w') as fout:
             preds.extend(preds_bucket)
 
             # extract actual label values
-            test_y_bucket = dataset_manager.get_label(dt_test_bucket)  # one row per case
+            test_y_bucket = dataset_manager.get_label(dt_test_bucket, mode=mode)  # one row per case
             test_y.extend(test_y_bucket)
 
             if nr_events == 1:
                 continue
-            elif dataset_manager.mode == "class":
+            elif mode == "class":
                 preds_bucket = pipelines[bucket]._final_estimator.cls.classes_[preds_bucket.argmax(axis=1)]
 
             case_ids = list(dt_test_bucket.groupby(dataset_manager.case_id_col).first().index)
@@ -235,7 +239,7 @@ with open(outfile, 'w') as fout:
             detailed_results = pd.concat([detailed_results, current_results])
 
         score = {}
-        if dataset_manager.mode == "regr":
+        if mode == "regr":
             score["mae"] = mean_absolute_error(test_y, preds)
             score["rmse"] = np.sqrt(mean_squared_error(test_y, preds))
             score["nmae"] = score["mae"] / median_case_duration
@@ -246,7 +250,10 @@ with open(outfile, 'w') as fout:
             preds_labels = pipelines[bucket]._final_estimator.cls.classes_[np.asarray(preds).argmax(axis=1)]
             score["acc"] = accuracy_score(test_y, preds_labels)
             score["f1"] = f1_score(test_y, preds_labels, average='weighted')
-            score["logloss"] = log_loss(test_y, preds)
+            try:
+                score["logloss"] = log_loss(test_y, preds)
+            except ValueError:
+                print("logloss cannot be calculated")
 
         for k, v in score.items():
             fout.write("%s,%s,%s,%s,%s,%s\n" % (label_col, method_name, cls_method, nr_events, k, v))
