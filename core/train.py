@@ -1,6 +1,6 @@
 import os
 import pickle
-from sys import argv
+import sys
 import operator
 
 import numpy as np
@@ -16,12 +16,12 @@ import ClassifierFactory
 import EncoderFactory
 from DatasetManager import DatasetManager
 
-train_file = argv[1]
+train_file = sys.argv[1]
 bucket_encoding = "agg"
-bucket_method = argv[2]
-cls_encoding = argv[3]
-cls_method = argv[4]
-label_col = argv[5]
+bucket_method = sys.argv[2]
+cls_encoding = sys.argv[3]
+cls_method = sys.argv[4]
+label_col = sys.argv[5]
 
 dataset_ref = os.path.splitext(train_file)[0]
 home_dirs = os.environ['PYTHONPATH'].split(":")
@@ -69,21 +69,31 @@ with open(outfile, 'w') as fout:
     data = pd.read_csv(os.path.join(home_dir, logs_dir, train_file), sep=";", dtype=dtypes)
     data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])
 
+    # add remaining time column to the dataset if it does not exist yet
     if "remtime" not in data.columns:
         print("Remaining time column is not found, will be added now")
         data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.add_remtime)
     mean_case_duration = dataset_manager.get_mean_case_duration(data)
 
-    # add label column to the dataset if it does not exist yet
-    if label_col == "remtime":  # prediction of remaining time
-        mode = "regr"
-    elif label_col == "label":  # prediction of a label wrt mean case duration #TODO give it a better name - "label" may exist
+    try:
+        float(label_col)
         mode = "class"
-        data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, mean_case_duration)
-    elif label_col in data.columns:  # prediction of existing column
-        mode = dataset_manager.determine_mode(data)
-    else:
-        print("Undefined target variable")
+        if float(label_col) == -1:
+            # prediction of a label wrt mean case duration
+            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, mean_case_duration)
+        elif float(label_col) > 0:
+            # prediction of a label wrt arbitrary threshold on case duration
+            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, float(label_col))
+        else:
+            sys.exit("Wrong value for case duration threshold")
+
+    except ValueError:
+        if label_col == "remtime":  # prediction of remaining time
+            mode = "regr"
+        elif label_col in data.columns:  # prediction of existing column
+            mode = dataset_manager.determine_mode(data)
+        else:
+            sys.exit("Undefined target variable")
 
     # split data into training and validation sets
     train, test = dataset_manager.split_data(data, train_ratio=0.80)

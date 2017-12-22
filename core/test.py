@@ -26,10 +26,10 @@ dtypes = {col: "str" for col in dataset_manager.dynamic_cat_cols + dataset_manag
 for col in dataset_manager.dynamic_num_cols + dataset_manager.static_num_cols:
     dtypes[col] = "float"
 
-if dataset_manager.mode == "regr":
-    dtypes[dataset_manager.label_col] = "float"  # if regression, target value is float
-else:
-    dtypes[dataset_manager.label_col] = "str"  # if classification, preserve and do not interpret dtype of label
+# if dataset_manager.mode == "regr":
+#     dtypes[dataset_manager.label_col] = "float"  # if regression, target value is float
+# else:
+#     dtypes[dataset_manager.label_col] = "str"  # if classification, preserve and do not interpret dtype of label
 
 test = pd.read_json(test_file, orient='records', dtype=dtypes)
 #test = test.drop(label_col, axis = 1)
@@ -45,7 +45,7 @@ if bucket not in pipelines:  # TODO fix this
 else:
     # make actual predictions
     preds = pipelines[bucket].predict_proba(test)
-    if dataset_manager.mode == "regr":
+    if preds.size == 1:
         preds = np.around(np.asscalar(preds), decimals=3)
         preds = max(0, preds)  # if remaining time is predicted to be negative, make it zero
     print(preds)
