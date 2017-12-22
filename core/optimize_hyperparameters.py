@@ -105,8 +105,8 @@ with open(outfile, 'w') as fout:
         if dataset_manager.mode == "regr":
             data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.add_remtime)
         else:
-            median_case_duration = dataset_manager.get_median_case_duration(data)
-            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, median_case_duration)
+            mean_case_duration = dataset_manager.get_mean_case_duration(data)
+            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, mean_case_duration)
 
     # split data into train and test
     train, _ = dataset_manager.split_data(data, train_ratio)

@@ -72,14 +72,14 @@ with open(outfile, 'w') as fout:
     if "remtime" not in data.columns:
         print("Remaining time column is not found, will be added now")
         data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.add_remtime)
-    median_case_duration = dataset_manager.get_median_case_duration(data)
+    mean_case_duration = dataset_manager.get_mean_case_duration(data)
 
     # add label column to the dataset if it does not exist yet
     if label_col == "remtime":  # prediction of remaining time
         mode = "regr"
-    elif label_col == "label":  # prediction of a label wrt median case duration #TODO give it a better name - "label" may exist
+    elif label_col == "label":  # prediction of a label wrt mean case duration #TODO give it a better name - "label" may exist
         mode = "class"
-        data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, median_case_duration)
+        data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, mean_case_duration)
     elif label_col in data.columns:  # prediction of existing column
         mode = dataset_manager.determine_mode(data)
     else:
@@ -242,8 +242,8 @@ with open(outfile, 'w') as fout:
         if mode == "regr":
             score["mae"] = mean_absolute_error(test_y, preds)
             score["rmse"] = np.sqrt(mean_squared_error(test_y, preds))
-            score["nmae"] = score["mae"] / median_case_duration
-            score["nrmse"] = score["rmse"] / median_case_duration
+            score["nmae"] = score["mae"] / mean_case_duration
+            score["nrmse"] = score["rmse"] / mean_case_duration
         elif len(set(test_y)) < 2:
             score = {"acc":0, "f1": 0, "logloss": 0}
         else:

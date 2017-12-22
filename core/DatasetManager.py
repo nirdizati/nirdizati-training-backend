@@ -50,12 +50,12 @@ class DatasetManager:
         end_date = group[self.timestamp_col].iloc[-1]
         tmp = end_date - group[self.timestamp_col]
         tmp = tmp.fillna(0)
-        group["remtime"] = tmp.apply(lambda x: float(x / np.timedelta64(1, 's')))  # s is for seconds
+        group["remtime"] = tmp.apply(lambda x: float(x / np.timedelta64(1, 'D')))  # D is for days
         return group
 
-    def get_median_case_duration(self, data):
+    def get_mean_case_duration(self, data):
         case_durations = data.groupby(self.case_id_col)['remtime'].max()
-        return np.median(case_durations)
+        return np.mean(case_durations)
 
     def assign_label(self, group, threshold):
         group = group.sort_values(self.timestamp_col, ascending=True)
