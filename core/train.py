@@ -33,7 +33,7 @@ detailed_results_dir = "results/detailed/"
 feature_importance_dir = "results/feature_importance/"
 pickles_dir = "pkl/"
 
-best_params = pd.read_json(os.path.join(home_dir, training_params_dir, "%s.json" % dataset_ref), typ="series")
+best_params = pd.read_json(os.path.join(home_dir, training_params_dir, "%s.json" % dataset_ref), typ="series", convert_axes=False)
 
 encoding_dict = {
     "laststate": ["static", "last"],
@@ -76,14 +76,14 @@ with open(outfile, 'w') as fout:
     mean_case_duration = dataset_manager.get_mean_case_duration(data)
 
     try:
-        float(label_col)
+        threshold = float(label_col)
         mode = "class"
-        if float(label_col) == -1:
+        if threshold == -1:
             # prediction of a label wrt mean case duration
             data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, mean_case_duration)
-        elif float(label_col) > 0:
+        elif threshold > 0:
             # prediction of a label wrt arbitrary threshold on case duration
-            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, float(label_col))
+            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, threshold)
         else:
             sys.exit("Wrong value for case duration threshold")
 
