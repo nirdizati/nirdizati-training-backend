@@ -1,24 +1,27 @@
-import pandas as pd
-import numpy as np
-import sys
-from sklearn.metrics import mean_absolute_error, r2_score
-from sklearn.metrics import roc_auc_score, precision_recall_fscore_support
-from sklearn.pipeline import Pipeline, FeatureUnion
 import os
-from sys import argv
 import itertools
+import sys
+import operator
 
-import EncoderFactory
+import numpy as np
+from numpy import array
+import pandas as pd
+
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.metrics import f1_score, accuracy_score, log_loss
+from sklearn.pipeline import Pipeline, FeatureUnion
+
 import BucketFactory
 import ClassifierFactory
+import EncoderFactory
 from DatasetManager import DatasetManager
 
-train_file = argv[1]
+train_file = sys.argv[1]
 bucket_encoding = "agg"
-bucket_method = argv[2]
-cls_encoding = argv[3]
-cls_method = argv[4]
-label_col = argv[5]
+bucket_method = sys.argv[2]
+cls_encoding = sys.argv[3]
+cls_method = sys.argv[4]
+label_col = sys.argv[5]
 
 dataset_ref = os.path.splitext(train_file)[0]
 home_dirs = os.environ['PYTHONPATH'].split(":")
@@ -91,40 +94,60 @@ with open(outfile, 'w') as fout:
     for col in dataset_manager.dynamic_num_cols + dataset_manager.static_num_cols:
         dtypes[col] = "float"
 
-    if dataset_manager.mode == "regr":
-        dtypes[dataset_manager.label_col] = "float" # if regression, target value is float
-    else:
-        dtypes[dataset_manager.label_col] = "str" # if classification, preserve and do not interpret dtype of label
+    # if dataset_manager.mode == "regr":
+    #     dtypes[dataset_manager.label_col] = "float" # if regression, target value is float
+    # else:
+    #     dtypes[dataset_manager.label_col] = "str" # if classification, preserve and do not interpret dtype of label
 
     data = pd.read_csv(os.path.join(home_dir, logs_dir, train_file), sep=";", dtype=dtypes)
+    #data = data.tail(10000)
     data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])
 
-    # add label column to the dataset if it does not exist yet
-    if label_col not in data.columns:
-        print("column %s does not exist in the log, let's create it" % label_col)
-        if dataset_manager.mode == "regr":
-            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.add_remtime)
-        else:
-            mean_case_duration = dataset_manager.get_mean_case_duration(data)
-            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, mean_case_duration)
+    # add remaining time column to the dataset if it does not exist yet
+    if "remtime" not in data.columns:
+        print("Remaining time column is not found, will be added now")
+        data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.add_remtime)
+    mean_case_duration = dataset_manager.get_mean_case_duration(data)
 
-    # split data into train and test
+    try:
+        threshold = float(label_col)
+        mode = "class"
+        if threshold == -1:
+            # prediction of a label wrt mean case duration
+            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label,
+                                                                                   mean_case_duration)
+        elif threshold > 0:
+            # prediction of a label wrt arbitrary threshold on case duration
+            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label,
+                                                                                   threshold)
+        else:
+            sys.exit("Wrong value for case duration threshold")
+
+    except ValueError:
+        if label_col == "remtime":  # prediction of remaining time
+            mode = "regr"
+        elif label_col in data.columns:  # prediction of existing column
+            mode = dataset_manager.determine_mode(data)
+        else:
+            sys.exit("Undefined target variable")
+
+    # split data into train and validation
     train, _ = dataset_manager.split_data(data, train_ratio)
 
     # consider prefix lengths until 90% of positive cases have finished
     min_prefix_length = 1
-    max_prefix_length = min(20, dataset_manager.get_pos_case_length_quantile(data, 0.90))
+    max_prefix_length = min(15, dataset_manager.get_case_length_quantile(data, 0.90))
     del data
 
     part = 0
-    for train_chunk, test_chunk in dataset_manager.get_stratified_split_generator(train, n_splits=2):
+    for train_chunk, test_chunk in dataset_manager.get_stratified_split_generator(train, mode, n_splits=5):
         part += 1
         print("Starting chunk %s..."%part)
         sys.stdout.flush()
 
         # create prefix logs
-        dt_train_prefixes = dataset_manager.generate_prefix_data(train_chunk, min_prefix_length, max_prefix_length)
-        dt_test_prefixes = dataset_manager.generate_prefix_data(test_chunk, min_prefix_length, max_prefix_length)
+        dt_train_prefixes = dataset_manager.generate_prefix_data(train_chunk, min_prefix_length, max_prefix_length, comparator=operator.ge)
+        dt_test_prefixes = dataset_manager.generate_prefix_data(test_chunk, min_prefix_length, max_prefix_length, comparator=operator.gt)
 
         print(dt_train_prefixes.shape)
         print(dt_test_prefixes.shape)
@@ -151,7 +174,7 @@ with open(outfile, 'w') as fout:
                                     'dynamic_num_cols':dataset_manager.dynamic_num_cols,
                                     'fillna':fillna}
 
-                cls_args = {'mode':dataset_manager.mode,
+                cls_args = {'mode':mode,
                             'random_state':random_state,
                             'min_cases_for_training':n_min_cases_in_bucket}
                 for i in range(len(cls_params_names)):
@@ -170,7 +193,7 @@ with open(outfile, 'w') as fout:
                     print("Fitting pipeline for bucket %s..."%bucket)
                     relevant_cases_bucket = dataset_manager.get_indexes(dt_train_prefixes)[bucket_assignments_train == bucket]
                     dt_train_bucket = dataset_manager.get_relevant_data_by_indexes(dt_train_prefixes, relevant_cases_bucket) # one row per event
-                    train_y = dataset_manager.get_label(dt_train_bucket)
+                    train_y = dataset_manager.get_label(dt_train_bucket, mode=mode)
 
                     feature_combiner = FeatureUnion([(method, EncoderFactory.get_encoder(method, **cls_encoder_args)) for method in methods])
                     pipelines[bucket] = Pipeline([('encoder', feature_combiner), ('cls', ClassifierFactory.get_classifier(cls_method, **cls_args))])
@@ -215,35 +238,41 @@ with open(outfile, 'w') as fout:
                         elif bucket not in pipelines:
                             # regression - use mean value (in training set) as prediction
                             # classification - use the historical class ratio
-                            avg_target_value = [np.mean(train_chunk["remtime"])] if dataset_manager.mode == "regr" else [dataset_manager.get_class_ratio(train_chunk)]
-                            preds_bucket = avg_target_value * len(relevant_cases_bucket)
+                            avg_target_value = [np.mean(train_chunk["remtime"])] if mode == "regr" else [dataset_manager.get_class_ratio(train_chunk)]
+                            preds_bucket = array(avg_target_value * len(relevant_cases_bucket))
 
                         else:
                             # make actual predictions
                             preds_bucket = pipelines[bucket].predict_proba(dt_test_bucket)
 
+                        preds_bucket = preds_bucket.clip(min=0)  # if remaining time is predicted to be negative, make it zero
                         preds.extend(preds_bucket)
 
                         # extract actual label values
-                        test_y_bucket = dataset_manager.get_label(dt_test_bucket) # one row per case
+                        test_y_bucket = dataset_manager.get_label(dt_test_bucket, mode=mode) # one row per case
                         test_y.extend(test_y_bucket)
 
                     score = {}
-                    if len(set(test_y)) < 2:
-                        score = {"score1": 0, "score2": 0}
-                    elif dataset_manager.mode == "regr":
+                    if mode == "regr":
                         score["mae"] = mean_absolute_error(test_y, preds)
-                        score["r2"] = r2_score(test_y, preds)
+                        score["rmse"] = np.sqrt(mean_squared_error(test_y, preds))
+                        score["nmae"] = score["mae"] / mean_case_duration
+                        score["nrmse"] = score["rmse"] / mean_case_duration
+                    elif len(set(test_y)) < 2:
+                        score = {"acc": 0, "f1": 0, "logloss": 0}
                     else:
-                        score["auc"] = roc_auc_score(test_y, preds)
-                        _, _, score["fscore"], _ = precision_recall_fscore_support(test_y, [0 if pred < 0.5 else 1 for pred in preds], average="binary")
+                        preds_labels = pipelines[bucket]._final_estimator.cls.classes_[np.asarray(preds).argmax(axis=1)]
+                        score["acc"] = accuracy_score(test_y, preds_labels)
+                        score["f1"] = f1_score(test_y, preds_labels, average='weighted')
+                        try:
+                            score["logloss"] = log_loss(test_y, preds)
+                        except ValueError:
+                            print("logloss cannot be calculated")
 
                     bucketer_params_str = ",".join([str(param) for param in bucketer_params_combo])
                     cls_params_str = ",".join([str(param) for param in cls_params_combo])
 
-                    fout.write("%s,%s,%s,%s,%s,%s,%s,%s,%s\n"%(part, label_col, method_name, cls_method, bucketer_params_str, cls_params_str, nr_events,
-                                                               list(score)[0], list(score.values())[0]))
-                    fout.write("%s,%s,%s,%s,%s,%s,%s,%s,%s\n"%(part, label_col, method_name, cls_method, bucketer_params_str, cls_params_str, nr_events,
-                                                               list(score)[1], list(score.values())[1]))
+                    for k, v in score.items():
+                        fout.write("%s,%s,%s,%s,%s,%s,%s,%s,%s\n"%(part, label_col, method_name, cls_method, bucketer_params_str, cls_params_str, nr_events, k, v))
 
                 print("\n")

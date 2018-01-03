@@ -41,13 +41,13 @@ data_agg = data.groupby(["cls", "label_col", "method", "metric", "nr_events"] + 
 data_agg_over_all_prefixes = data.groupby(["cls", "label_col", "method", "metric"] + params_cols, as_index=False)[
     "score"].mean()
 
-# select best params according to MAE only (for regression) and AUC only (for classification)
+# select best params according to MAE only (for regression) and accuracy only (for classification)
 data_regr_agg = data_agg[data_agg.metric == "mae"]
-data_class_agg = data_agg[data_agg.metric == "auc"]
+data_class_agg = data_agg[data_agg.metric == "acc"]
 data_regr_agg_over_all_prefixes = data_agg_over_all_prefixes[data_agg_over_all_prefixes.metric == "mae"]
-data_class_agg_over_all_prefixes = data_agg_over_all_prefixes[data_agg_over_all_prefixes.metric == "auc"]
+data_class_agg_over_all_prefixes = data_agg_over_all_prefixes[data_agg_over_all_prefixes.metric == "acc"]
 
-# select the best params - lowest MAE or highest AUC
+# select the best params - lowest MAE or highest accuracy
 data_regr_best = data_regr_agg.sort_values("score", ascending=True).groupby(["cls", "label_col", "method", "metric", "nr_events"],
                                                                   as_index=False).first()
 data_regr_best_over_all_prefixes = data_regr_agg_over_all_prefixes.sort_values("score", ascending=True).groupby(
