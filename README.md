@@ -75,7 +75,7 @@ Default hyperparameters:
 ```bash
 export PYTHONPATH=....../PredictiveMethods/
 cd PredictiveMethods/core/
-python test.py path_to_prefix.csv path_to_pickle_model_filename 
+python test.py path_to_single_test_prefix.json path_to_pickle_model_filename 
 ```
 
 Example:
