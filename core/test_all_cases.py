@@ -59,11 +59,18 @@ for bucket in set(bucket_assignments_test):
 
     preds_bucket = preds_bucket.clip(min=0)  # if remaining time is predicted to be negative, make it zero
 
-    if preds_bucket.shape[1] > 1:  # classification
+    if preds_bucket.ndim > 1:  # classification
         preds_bucket = pipelines[bucket]._final_estimator.cls.classes_[preds_bucket.argmax(axis=1)]
 
     case_ids = list(dt_test_bucket.groupby(dataset_manager.case_id_col).first().index)
-    current_results = pd.DataFrame({"%s"%dataset_manager.label_col: preds_bucket, "%s"%dataset_manager.case_id_col: case_ids})
+    current_results = pd.DataFrame({dataset_manager.case_id_col: case_ids, dataset_manager.label_col: preds_bucket})
+    if dataset_manager.label_col == "remtime":  # remaining time - output predicted completion time instead
+        last_timestamps = test.groupby(dataset_manager.case_id_col)[dataset_manager.timestamp_col].apply(lambda x: x.max())
+        last_timestamps = pd.DataFrame({dataset_manager.case_id_col: last_timestamps.index, 'last-timestamp': last_timestamps.values})
+        current_results = pd.merge(current_results, last_timestamps, on=dataset_manager.case_id_col)
+        current_results['predicted-completion'] = pd.to_datetime(current_results['last-timestamp']) + pd.to_timedelta(current_results['remtime'].round(), unit='s')
+        current_results = current_results.drop(["last-timestamp", "remtime"], axis=1)
+
     detailed_results = pd.concat([detailed_results, current_results])
 
 detailed_results.to_csv(detailed_results_file, sep=",", index=False)
