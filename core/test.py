@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings('ignore')
+
 import os
 import pickle
 import sys
@@ -45,7 +48,10 @@ if bucket not in pipelines:  # TODO fix this
 else:
     # make actual predictions
     preds = pipelines[bucket].predict_proba(test)
-    if preds.size == 1:
-        preds = np.around(np.asscalar(preds), decimals=3)
-        preds = max(0, preds)  # if remaining time is predicted to be negative, make it zero
+    if preds.size > 1:  #classification
+        preds = pd.DataFrame(preds, columns=pipelines[bucket]._final_estimator.cls.classes_)
+    else:  #regression
+        preds = pd.DataFrame(np.around(preds.clip(min=0)), columns=[dataset_manager.label_col])
+
+    preds = preds.to_json(orient='records')
     print(preds)
