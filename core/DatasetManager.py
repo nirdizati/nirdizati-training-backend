@@ -46,7 +46,7 @@ class DatasetManager:
         return mode
 
     def add_remtime(self, group):
-        group = group.sort_values(self.timestamp_col, ascending=True)
+        group = group.sort_values(self.timestamp_col, ascending=True, kind="mergesort")
         end_date = group[self.timestamp_col].iloc[-1]
         tmp = end_date - group[self.timestamp_col]
         tmp = tmp.fillna(0)
@@ -58,9 +58,15 @@ class DatasetManager:
         return np.mean(case_durations)
 
     def assign_label(self, group, threshold):
-        group = group.sort_values(self.timestamp_col, ascending=True)
+        group = group.sort_values(self.timestamp_col, ascending=True, kind="mergesort")
         case_duration = group["remtime"].iloc[0]
         group[self.label_col] = "false" if case_duration < threshold else "true"
+        return group
+
+    def get_next_activity(self, group):
+        group = group.sort_values(self.timestamp_col, ascending=True, kind="mergesort")
+        group[self.label_col] = group[self.activity_col].shift(-1)
+        group[self.label_col] = group[self.label_col].fillna("PROCESS_END")
         return group
 
     def split_data(self, data, train_ratio):
@@ -103,11 +109,11 @@ class DatasetManager:
 
     def get_label(self, data, mode):
         if self.label_col == "remtime":
-            # remtime is dynamic, take the latest (smallest) value
+            # remtime is a dynamic label (changes with each executed event), take the latest (smallest) value
             return data.groupby(self.case_id_col).min()[self.label_col]
         else:
-            # for regression, we assume the prediction target is a static case attribute
-            return data.groupby(self.case_id_col).first()[self.label_col]
+            # static labels - take any value throughout the case (e.g. the last one)
+            return data.groupby(self.case_id_col).last()[self.label_col]
     
     def get_class_ratio(self, data):
         class_freqs = data[self.label_col].value_counts()

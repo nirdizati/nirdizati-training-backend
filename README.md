@@ -5,12 +5,18 @@ cd PredictiveMethods/core/
 python train.py log_name_csv bucketing_type encoding_type learner_type target 
 ```
 
-* log_name_csv - name of the file as in `logdata` directory 
-* bucketing_type - `zero`, `cluster`, `state` or `prefix`
-* encoding_type - `agg`, `laststate`, `index` or `combined`
-* learner_type - `rf` for random forest, `gbm` for gradient boosting, `dt` for decision tree or `xgb` for extreme gradient boosting
-* target - *name of the column* that you want to predict. The prediction problem type (classification or regression) is determine automatically based on the number of unique levels of a target variable and whether or not it can be parsed as a numeric series. Two special targets are `remtime` or `label` (for the remaining time and case outcome based on the median case duration). Note that keywords `remtime` and `label` are reserved, i.e if there is already a column with such names, it will be ignored, but remaining time and outcome will be predicted instead. 
+* `log_name_csv` - name of the file as in `logdata` directory 
+* `bucketing_type` - `zero`, `cluster`, `state` or `prefix`
+* `encoding_type` - `agg`, `laststate`, `index` or `combined`
+* `learner_type` - `rf` for random forest, `gbm` for gradient boosting, `dt` for decision tree or `xgb` for extreme gradient boosting
+* `target` - variable that you want to predict (see below). The prediction problem type (classification or regression) is determined automatically based on the number of unique levels of a target variable and whether or not it can be parsed as a numeric series.
 
+### What can be predicted?
+* Any static, i.e. case, attribute that is already available in the log as a column. In this case, `target` is the name of the corresponding column.
+* Remaining cycle time. Use `remtime` keyword as a `target`  argument for train.py
+* Binary case outcome based on the expected case duration (whether case duration will exceed a specified threshold). Use a positive threshold value for `target` or "-1" if you want the labeling to be based on the *median* case duration.   
+* Next activity to be executed. Use `next` for `target`
+ 
 Example:
 
 ```bash
@@ -60,12 +66,14 @@ Output of the training script:
 * Data on feature importance - PredictiveMethods/results/feature_importance/feat_importance_{log-name-without-extension}_bucketing_encoding_learner_target.**csv**
 
 
-## How to choose default training parameters
+### How to choose default training parameters?
 Bucketing - No bucketing (zero)
+
 Encoding - Frequency (agg)
+
 Predictor - XGBoost
 
-Default hyperparameters:
+Default hyperparameters for XGBoost predictor:
 * Random forest: Number of estimators 300, max_features 0.5
 * Gradient boosting: Number of estimators 300, max_features 0.5, learning rate 0.1
 * Decision tree: max_features 0.5, max_depth 5

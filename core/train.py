@@ -90,6 +90,9 @@ with open(outfile, 'w') as fout:
     except ValueError:
         if label_col == "remtime":  # prediction of remaining time
             mode = "regr"
+        elif label_col == "next":  # prediction of the next activity
+            mode = "class"
+            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.get_next_activity)
         elif label_col in data.columns:  # prediction of existing column
             mode = dataset_manager.determine_mode(data)
         else:
