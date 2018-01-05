@@ -62,11 +62,11 @@ elif cls_method == "dt":
                   'max_depth':[5, 10, 20]}
 
 elif cls_method == "xgb":
-    cls_params = {'n_estimators':[100, 300],
-                  'learning_rate':[0.02, 0.04],
-                  'subsample': [0.7],
-                  'max_depth': [3],
-                  'colsample_bytree':[0.6]}
+    cls_params = {'n_estimators':[300, 500],
+                  'learning_rate':[0.02, 0.04, 0.06],
+                  'subsample': [0.5, 0.8],
+                  'max_depth': [2,4,6],
+                  'colsample_bytree':[0.5, 0.8]}
 
 bucketer_params_names = list(bucketer_params.keys())
 cls_params_names = list(cls_params.keys())

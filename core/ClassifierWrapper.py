@@ -3,7 +3,7 @@ from numpy import array
 
 class ClassifierWrapper(object):
     
-    def __init__(self, cls, mode, min_cases_for_training = 30):
+    def __init__(self, cls, mode, min_cases_for_training=30):
         self.cls = cls
         
         self.min_cases_for_training = min_cases_for_training
@@ -12,13 +12,19 @@ class ClassifierWrapper(object):
 
         
     def fit(self, X, y):
-        # if there are too few training instances, use the mean
-        if X.shape[0] < self.min_cases_for_training:
-            self.hardcoded_prediction = np.mean(y)
-
         # if all the training instances are of the same class, use this class as prediction
-        elif len(set(y)) < 2:
-            self.hardcoded_prediction = int(y[0])
+        if len(set(y)) < 2 and self.mode == "class":
+            print("All samples are of one class. Defaulting to hardcoded predictions")
+            self.hardcoded_prediction = y[0]
+
+        # if there are too few training instances, use the mean
+        elif X.shape[0] < self.min_cases_for_training:
+            print("Too few samples. Defaulting to average predictions")
+            if self.mode == "regr":
+                self.hardcoded_prediction = np.mean(y)
+            elif self.mode == "class":
+                class_freqs = y.value_counts().sort_index()
+                self.hardcoded_prediction = class_freqs / class_freqs.sum()
 
         else:
             self.cls.fit(X, y)

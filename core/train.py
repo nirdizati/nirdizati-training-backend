@@ -233,7 +233,8 @@ with open(outfile, 'w') as fout:
                 # make actual predictions
                 preds_bucket = pipelines[bucket].predict_proba(dt_test_bucket)
 
-            preds_bucket = preds_bucket.clip(min=0)  # if remaining time is predicted to be negative, make it zero
+            if mode == "regr":
+                preds_bucket = preds_bucket.clip(min=0)  # if remaining time is predicted to be negative, make it zero
             preds.extend(preds_bucket)
 
             # extract actual label values
