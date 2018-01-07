@@ -212,7 +212,7 @@ with open(outfile, 'w') as fout:
 
         # use appropriate classifier for each bucket of test cases
         # for evaluation, collect predictions from different buckets together
-        preds = []
+        preds = [] if mode == "regr" else pd.DataFrame()
         test_y = []
         for bucket in set(bucket_assignments_test):
             relevant_cases_bucket = dataset_manager.get_indexes(dt_test_nr_events)[bucket_assignments_test == bucket]
@@ -225,17 +225,28 @@ with open(outfile, 'w') as fout:
             elif bucket not in pipelines:
                 # regression - use mean value (in training set) as prediction
                 # classification - use the historical class ratio
-                avg_target_value = [np.mean(train["remtime"])] if mode == "regr" else [
-                    dataset_manager.get_class_ratio(train)]
-                preds_bucket = array(avg_target_value * len(relevant_cases_bucket))
+                if mode == "regr":
+                    avg_target_value = [np.mean(train[dataset_manager.label_col])]
+                    preds_bucket = array(avg_target_value * len(relevant_cases_bucket))
+                else:
+                    avg_target_value = [dataset_manager.get_class_ratio(train)]
+                    preds_bucket = pd.DataFrame(avg_target_value * len(relevant_cases_bucket))
 
             else:
                 # make actual predictions
                 preds_bucket = pipelines[bucket].predict_proba(dt_test_bucket)
 
             if mode == "regr":
-                preds_bucket = preds_bucket.clip(min=0)  # if remaining time is predicted to be negative, make it zero
-            preds.extend(preds_bucket)
+                # if remaining time is predicted to be negative, make it zero
+                preds_bucket = preds_bucket.clip(min=0)
+                preds.extend(preds_bucket)
+            else:
+                # if some label values were not present in the training set, thus are never predicted
+                classes_as_is = preds_bucket.columns
+                for class_to_be in train[dataset_manager.label_col].unique():
+                    if class_to_be not in classes_as_is:
+                        preds_bucket[class_to_be] = 0
+                preds = pd.concat([preds, preds_bucket])
 
             # extract actual label values
             test_y_bucket = dataset_manager.get_label(dt_test_bucket, mode=mode)  # one row per case
@@ -244,10 +255,10 @@ with open(outfile, 'w') as fout:
             if nr_events == 1:
                 continue
             elif mode == "class":
-                preds_bucket = pipelines[bucket]._final_estimator.cls.classes_[preds_bucket.argmax(axis=1)]
+                preds_bucket = preds_bucket.idxmax(axis=1)
 
             case_ids = list(dt_test_bucket.groupby(dataset_manager.case_id_col).first().index)
-            current_results = pd.DataFrame({"label_col": label_col, "method": method_name, "cls": cls_method, "nr_events": nr_events, "predicted": preds_bucket, "actual": test_y_bucket, "case_id": case_ids})
+            current_results = pd.DataFrame({"label_col": label_col, "method": method_name, "cls": cls_method, "nr_events": nr_events, "predicted": preds_bucket, "actual": test_y_bucket.values, "case_id": case_ids})
             detailed_results = pd.concat([detailed_results, current_results])
 
         score = {}
@@ -259,11 +270,11 @@ with open(outfile, 'w') as fout:
         elif len(set(test_y)) < 2:
             score = {"acc":0, "f1": 0, "logloss": 0}
         else:
-            preds_labels = pipelines[bucket]._final_estimator.cls.classes_[np.asarray(preds).argmax(axis=1)]
+            preds_labels = preds.idxmax(axis=1)
             score["acc"] = accuracy_score(test_y, preds_labels)
             score["f1"] = f1_score(test_y, preds_labels, average='weighted')
             try:
-                score["logloss"] = log_loss(test_y, preds)
+                score["logloss"] = log_loss(test_y, preds, labels=preds.columns)
             except ValueError:
                 print("logloss cannot be calculated")
 
