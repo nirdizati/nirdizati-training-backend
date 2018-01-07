@@ -283,4 +283,8 @@ with open(outfile, 'w') as fout:
 
     print("\n")
 
-detailed_results.to_csv(detailed_results_file, sep=",", index=False)
+if mode == "class":
+    confusion_matrix = pd.crosstab(detailed_results.actual, detailed_results.predicted, rownames=['Actual'], colnames=['Predicted'], margins=True)
+    confusion_matrix.to_csv(detailed_results_file, sep=",")
+else:
+    detailed_results.to_csv(detailed_results_file, sep=",", index=False)
