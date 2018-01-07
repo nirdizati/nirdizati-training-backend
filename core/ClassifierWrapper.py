@@ -1,5 +1,6 @@
 import numpy as np
 from numpy import array
+import pandas as pd
 
 class ClassifierWrapper(object):
     
@@ -12,19 +13,14 @@ class ClassifierWrapper(object):
 
         
     def fit(self, X, y):
-        # if all the training instances are of the same class, use this class as prediction
-        if len(set(y)) < 2 and self.mode == "class":
-            print("All samples are of one class. Defaulting to hardcoded predictions")
-            self.hardcoded_prediction = y[0]
+        if self.mode == "class" and (len(set(y)) < 2 or X.shape[0] < self.min_cases_for_training):
+            # if all the training instances are of the same class, use this class as prediction
+            # if there are too few training instances, use average historical values
+            class_freqs = y.value_counts().sort_index()
+            self.hardcoded_prediction = class_freqs / class_freqs.sum()
 
-        # if there are too few training instances, use the mean
-        elif X.shape[0] < self.min_cases_for_training:
-            print("Too few samples. Defaulting to average predictions")
-            if self.mode == "regr":
-                self.hardcoded_prediction = np.mean(y)
-            elif self.mode == "class":
-                class_freqs = y.value_counts().sort_index()
-                self.hardcoded_prediction = class_freqs / class_freqs.sum()
+        elif self.mode == "regr" and X.shape[0] < self.min_cases_for_training:
+            self.hardcoded_prediction = np.mean(y)
 
         else:
             self.cls.fit(X, y)
@@ -34,7 +30,7 @@ class ClassifierWrapper(object):
     def predict_proba(self, X, y=None):
 
         if self.hardcoded_prediction is not None:
-            return array([self.hardcoded_prediction] * X.shape[0])
+            return array([self.hardcoded_prediction] * X.shape[0]) if self.mode == "regr" else pd.DataFrame([self.hardcoded_prediction] * X.shape[0])
                         
         elif self.mode == "regr":
             preds = self.cls.predict(X)
@@ -43,7 +39,7 @@ class ClassifierWrapper(object):
         elif self.mode == "class":
             # preds_pos_label_idx = np.where(self.cls.classes_ == 1)[0][0]
             # preds = self.cls.predict_proba(X)[:,preds_pos_label_idx]
-            preds = self.cls.predict_proba(X)
+            preds = pd.DataFrame(self.cls.predict_proba(X), columns=self.cls.classes_)
             return preds
 
         else:
