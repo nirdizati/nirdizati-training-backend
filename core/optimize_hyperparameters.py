@@ -126,6 +126,9 @@ with open(outfile, 'w') as fout:
     except ValueError:
         if label_col == "remtime":  # prediction of remaining time
             mode = "regr"
+        elif label_col == "next":  # prediction of the next activity
+            mode = "class"
+            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.get_next_activity)
         elif label_col in data.columns:  # prediction of existing column
             mode = dataset_manager.determine_mode(data)
         else:
@@ -226,7 +229,7 @@ with open(outfile, 'w') as fout:
 
                     # use appropriate classifier for each bucket of test cases
                     # for evaluation, collect predictions from different buckets together
-                    preds = []
+                    preds = [] if mode == "regr" else pd.DataFrame()
                     test_y = []
                     for bucket in set(bucket_assignments_test):
                         relevant_cases_bucket = dataset_manager.get_indexes(dt_test_nr_events)[bucket_assignments_test == bucket]
@@ -238,15 +241,28 @@ with open(outfile, 'w') as fout:
                         elif bucket not in pipelines:
                             # regression - use mean value (in training set) as prediction
                             # classification - use the historical class ratio
-                            avg_target_value = [np.mean(train_chunk["remtime"])] if mode == "regr" else [dataset_manager.get_class_ratio(train_chunk)]
-                            preds_bucket = array(avg_target_value * len(relevant_cases_bucket))
+                            if mode == "regr":
+                                avg_target_value = [np.mean(train_chunk[dataset_manager.label_col])]
+                                preds_bucket = array(avg_target_value * len(relevant_cases_bucket))
+                            else:
+                                avg_target_value = [dataset_manager.get_class_ratio(train_chunk)]
+                                preds_bucket = pd.DataFrame(avg_target_value * len(relevant_cases_bucket))
 
                         else:
                             # make actual predictions
                             preds_bucket = pipelines[bucket].predict_proba(dt_test_bucket)
 
-                        preds_bucket = preds_bucket.clip(min=0)  # if remaining time is predicted to be negative, make it zero
-                        preds.extend(preds_bucket)
+                        if mode == "regr":
+                            # if remaining time is predicted to be negative, make it zero
+                            preds_bucket = preds_bucket.clip(min=0)
+                            preds.extend(preds_bucket)
+                        else:
+                            # if some label values were not present in the training set, thus are never predicted
+                            classes_as_is = preds_bucket.columns
+                            for class_to_be in train[dataset_manager.label_col].unique():
+                                if class_to_be not in classes_as_is:
+                                    preds_bucket[class_to_be] = 0
+                            preds = pd.concat([preds, preds_bucket])
 
                         # extract actual label values
                         test_y_bucket = dataset_manager.get_label(dt_test_bucket, mode=mode) # one row per case
@@ -261,11 +277,11 @@ with open(outfile, 'w') as fout:
                     elif len(set(test_y)) < 2:
                         score = {"acc": 0, "f1": 0, "logloss": 0}
                     else:
-                        preds_labels = pipelines[bucket]._final_estimator.cls.classes_[np.asarray(preds).argmax(axis=1)]
+                        preds_labels = preds.idxmax(axis=1)
                         score["acc"] = accuracy_score(test_y, preds_labels)
                         score["f1"] = f1_score(test_y, preds_labels, average='weighted')
                         try:
-                            score["logloss"] = log_loss(test_y, preds)
+                            score["logloss"] = log_loss(test_y, preds, labels=preds.columns)
                         except ValueError:
                             print("logloss cannot be calculated")
 
