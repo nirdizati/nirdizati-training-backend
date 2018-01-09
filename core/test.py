@@ -45,9 +45,7 @@ if bucket not in pipelines:  # TODO fix this
 else:
     # make actual predictions
     preds = pipelines[bucket].predict_proba(test)
-    if preds.ndim > 1:  #classification
-        preds = pd.DataFrame(preds, columns=pipelines[bucket]._final_estimator.cls.classes_)
-    else:  #regression
+    if preds.ndim == 1:  #regression
         preds = pd.DataFrame(np.around(preds.clip(min=0)), columns=[dataset_manager.label_col])
 
     preds = preds.to_json(orient='records')

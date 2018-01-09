@@ -98,7 +98,7 @@ with open(outfile, 'w') as fout:
         else:
             sys.exit("Undefined target variable")
 
-    # split data into training and validation sets
+    # split data into training and test sets
     train, test = dataset_manager.split_data(data, train_ratio=0.80)
     # train = train.sort_values(dataset_manager.timestamp_col, ascending=True, kind='mergesort')
 
@@ -283,4 +283,8 @@ with open(outfile, 'w') as fout:
 
     print("\n")
 
-detailed_results.to_csv(detailed_results_file, sep=",", index=False)
+if mode == "class":
+    confusion_matrix = pd.crosstab(detailed_results.actual, detailed_results.predicted, rownames=['Actual'], colnames=['Predicted'], margins=True)
+    confusion_matrix.to_csv(detailed_results_file, sep=",")
+else:
+    detailed_results.to_csv(detailed_results_file, sep=",", index=False)
