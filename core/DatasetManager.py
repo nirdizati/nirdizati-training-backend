@@ -19,9 +19,9 @@ class DatasetManager:
 
         dataset_params = pd.read_json(os.path.join(dataset_params_dir, "%s.json" % self.dataset_name), orient="index", typ="series")
 
-        self.case_id_col = dataset_params[u'case_id_col']
-        self.activity_col = dataset_params[u'activity_col']
-        self.timestamp_col = dataset_params[u'timestamp_col']
+        self.case_id_col = dataset_params['case_id_col']
+        self.activity_col = dataset_params['activity_col']
+        self.timestamp_col = dataset_params['timestamp_col']
 
         # define features for predictions
         predictor_cols = ["dynamic_cat_cols", "static_cat_cols", "dynamic_num_cols", "static_num_cols"]
@@ -30,6 +30,9 @@ class DatasetManager:
                 print("%s found in %s, it will be removed (not a feature)" % (label_col, predictor_col))
                 dataset_params[predictor_col].remove(label_col)  # exclude label attributes from features
             setattr(self, predictor_col, dataset_params[predictor_col])
+
+        if self.activity_col not in self.dynamic_cat_cols:
+            self.dynamic_cat_cols += [self.activity_col]
 
     def determine_mode(self, data):
         if data[self.label_col].nunique() < unique_values_threshold:
