@@ -73,13 +73,13 @@ with open(outfile, 'w') as fout:
     if "remtime" not in data.columns:
         print("Remaining time column is not found, will be added now")
         data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.add_remtime)
-    mean_case_duration = dataset_manager.get_mean_case_duration(data)
 
     try:
         threshold = float(label_col)
         mode = "class"
         if threshold == -1:
             # prediction of a label wrt mean case duration
+            mean_case_duration = dataset_manager.get_mean_case_duration(data)
             data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, mean_case_duration)
         elif threshold > 0:
             # prediction of a label wrt arbitrary threshold on case duration
@@ -100,7 +100,6 @@ with open(outfile, 'w') as fout:
 
     # split data into training and test sets
     train, test = dataset_manager.split_data(data, train_ratio=0.80)
-    # train = train.sort_values(dataset_manager.timestamp_col, ascending=True, kind='mergesort')
 
     # consider prefix lengths until 90th percentile of case length
     min_prefix_length = 1
@@ -265,8 +264,8 @@ with open(outfile, 'w') as fout:
         if mode == "regr":
             score["mae"] = mean_absolute_error(test_y, preds)
             score["rmse"] = np.sqrt(mean_squared_error(test_y, preds))
-            score["nmae"] = score["mae"] / mean_case_duration
-            score["nrmse"] = score["rmse"] / mean_case_duration
+            score["nmae"] = score["mae"] / test[dataset_manager.label_col].mean()
+            score["nrmse"] = score["rmse"] / test[dataset_manager.label_col].mean()
         elif len(set(test_y)) < 2:
             score = {"acc":0, "f1": 0, "logloss": 0}
         else:
