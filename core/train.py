@@ -17,11 +17,8 @@ import EncoderFactory
 from DatasetManager import DatasetManager
 
 train_file = sys.argv[1]
+config_file = sys.argv[2]
 bucket_encoding = "agg"
-bucket_method = sys.argv[2]
-cls_encoding = sys.argv[3]
-cls_method = sys.argv[4]
-label_col = sys.argv[5]
 
 dataset_ref = os.path.splitext(train_file)[0]
 home_dirs = os.environ['PYTHONPATH'].split(":")
@@ -33,7 +30,16 @@ detailed_results_dir = "results/detailed/"
 feature_importance_dir = "results/feature_importance/"
 pickles_dir = "pkl/"
 
-best_params = pd.read_json(os.path.join(home_dir, training_params_dir, "%s.json" % dataset_ref), typ="series", convert_axes=False)
+config = pd.read_json(os.path.join(home_dir, training_params_dir, "%s.json" % config_file), typ="series", convert_axes=False)
+for k, v in config.items():
+    label_col=k
+    for k1, v1 in v.items():
+        method_name = k1
+        for k2, v2 in v1.items():
+            cls_method=k2
+
+bucket_method = method_name.split("_")[0]
+cls_encoding = method_name.split("_")[1]
 
 encoding_dict = {
     "laststate": ["static", "last"],
@@ -41,13 +47,7 @@ encoding_dict = {
     "index": ["static", "index"],
     "combined": ["static", "last", "agg"]}
 
-method_name = "%s_%s" % (bucket_method, cls_encoding)
 methods = encoding_dict[cls_encoding]
-
-outfile = os.path.join(home_dir, results_dir,
-                       "validation_%s_%s_%s_%s.csv" % (dataset_ref, method_name, cls_method, label_col))
-detailed_results_file = os.path.join(home_dir, detailed_results_dir,
-                       "detailed_%s_%s_%s_%s.csv" % (dataset_ref, method_name, cls_method, label_col))
 
 pickle_file = os.path.join(home_dir, pickles_dir, '%s_%s_%s_%s.pkl' % (dataset_ref, method_name, cls_method, label_col))
 
@@ -55,48 +55,54 @@ random_state = 22
 fillna = True
 n_min_cases_in_bucket = 30
 
+
 ##### MAIN PART ######
+dataset_manager = DatasetManager(dataset_ref, label_col)
+dtypes = {col: "str" for col in dataset_manager.dynamic_cat_cols + dataset_manager.static_cat_cols +
+          [dataset_manager.case_id_col, dataset_manager.timestamp_col]}
+for col in dataset_manager.dynamic_num_cols + dataset_manager.static_num_cols:
+    dtypes[col] = "float"
+
+data = pd.read_csv(os.path.join(home_dir, logs_dir, train_file), sep=";", dtype=dtypes)
+data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])
+
+# add remaining time column to the dataset if it does not exist yet
+if "remtime" not in data.columns:
+    print("Remaining time column is not found, will be added now")
+    data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.add_remtime)
+
+try:
+    threshold = float(label_col)
+    mode = "class"
+    if threshold == -1:
+        # prediction of a label wrt mean case duration
+        mean_case_duration = dataset_manager.get_mean_case_duration(data)
+        data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, mean_case_duration)
+    elif threshold > 0:
+        # prediction of a label wrt arbitrary threshold on case duration
+        data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, threshold)
+    else:
+        sys.exit("Wrong value for case duration threshold")
+
+except ValueError:
+    if label_col == "remtime":  # prediction of remaining time
+        mode = "regr"
+    elif label_col == "next":  # prediction of the next activity
+        mode = "class"
+        data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.get_next_activity)
+    elif label_col in data.columns:  # prediction of existing column
+        mode = dataset_manager.determine_mode(data)
+    else:
+        sys.exit("Undefined target variable")
+
+outfile = os.path.join(home_dir, results_dir,
+                       "validation_%s_%s_%s.csv" % (dataset_ref, config_file, mode))
+detailed_results_file = os.path.join(home_dir, detailed_results_dir,
+                       "detailed_%s_%s_%s.csv" % (dataset_ref, config_file, mode))
 detailed_results = pd.DataFrame()
+
 with open(outfile, 'w') as fout:
     fout.write("%s,%s,%s,%s,%s,%s\n" % ("label_col", "method", "cls", "nr_events", "metric", "score"))
-
-    dataset_manager = DatasetManager(dataset_ref, label_col)
-    dtypes = {col: "str" for col in dataset_manager.dynamic_cat_cols + dataset_manager.static_cat_cols +
-              [dataset_manager.case_id_col, dataset_manager.timestamp_col]}
-    for col in dataset_manager.dynamic_num_cols + dataset_manager.static_num_cols:
-        dtypes[col] = "float"
-
-    data = pd.read_csv(os.path.join(home_dir, logs_dir, train_file), sep=";", dtype=dtypes)
-    data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])
-
-    # add remaining time column to the dataset if it does not exist yet
-    if "remtime" not in data.columns:
-        print("Remaining time column is not found, will be added now")
-        data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.add_remtime)
-
-    try:
-        threshold = float(label_col)
-        mode = "class"
-        if threshold == -1:
-            # prediction of a label wrt mean case duration
-            mean_case_duration = dataset_manager.get_mean_case_duration(data)
-            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, mean_case_duration)
-        elif threshold > 0:
-            # prediction of a label wrt arbitrary threshold on case duration
-            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.assign_label, threshold)
-        else:
-            sys.exit("Wrong value for case duration threshold")
-
-    except ValueError:
-        if label_col == "remtime":  # prediction of remaining time
-            mode = "regr"
-        elif label_col == "next":  # prediction of the next activity
-            mode = "class"
-            data = data.groupby(dataset_manager.case_id_col, as_index=False).apply(dataset_manager.get_next_activity)
-        elif label_col in data.columns:  # prediction of existing column
-            mode = dataset_manager.determine_mode(data)
-        else:
-            sys.exit("Undefined target variable")
 
     # split data into training and test sets
     train, test = dataset_manager.split_data(data, train_ratio=0.80)
@@ -122,7 +128,7 @@ with open(outfile, 'w') as fout:
                      'n_clusters': None,
                      'random_state': random_state}
     if bucket_method == "cluster":
-        bucketer_args['n_clusters'] = best_params[label_col][method_name][cls_method]['n_clusters']
+        bucketer_args['n_clusters'] = config[label_col][method_name][cls_method]['n_clusters']
 
     cls_encoder_args = {'case_id_col': dataset_manager.case_id_col,
                         'static_cat_cols': dataset_manager.static_cat_cols,
@@ -144,10 +150,10 @@ with open(outfile, 'w') as fout:
 
         # set optimal params for this bucket
         if bucket_method == "prefix":
-            cls_args = {k: v for k, v in best_params[label_col][method_name][cls_method][u'%s' % bucket].items() if
+            cls_args = {k: v for k, v in config[label_col][method_name][cls_method][u'%s' % bucket].items() if
                         k not in ['n_clusters']}
         else:
-            cls_args = {k: v for k, v in best_params[label_col][method_name][cls_method].items() if
+            cls_args = {k: v for k, v in config[label_col][method_name][cls_method].items() if
                         k not in ['n_clusters']}
         cls_args['mode'] = mode
         cls_args['random_state'] = random_state
@@ -183,8 +189,8 @@ with open(outfile, 'w') as fout:
 
         importances = pd.DataFrame.from_dict(feats, orient='index').rename(columns={0: 'Gini-importance'})
         importances = importances.sort_values(by='Gini-importance', ascending=False)
-        importances.head(20).to_csv(os.path.join(home_dir, feature_importance_dir, "feat_importance_%s_%s_%s_%s_%s.csv" %
-                                        (dataset_ref, method_name, cls_method, label_col, bucket)))
+        importances.head(20).to_csv(os.path.join(home_dir, feature_importance_dir, "feat_importance_%s_%s_%s.csv" %
+                                        (dataset_ref, config_file, bucket)))
 
     with open(pickle_file, 'wb') as f:
         pickle.dump(pipelines, f)
@@ -283,7 +289,7 @@ with open(outfile, 'w') as fout:
     print("\n")
 
 if mode == "class":
-    confusion_matrix = pd.crosstab(detailed_results.actual, detailed_results.predicted, rownames=['Actual'], colnames=['Predicted'], margins=True)
+    confusion_matrix = pd.crosstab(detailed_results.actual, detailed_results.predicted, rownames=['Actual'], colnames=['Predicted'], margins=False)
     confusion_matrix.to_csv(detailed_results_file, sep=",")
 else:
     detailed_results.to_csv(detailed_results_file, sep=",", index=False)
