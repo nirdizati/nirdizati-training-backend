@@ -32,11 +32,12 @@ pickles_dir = "pkl/"
 
 config = pd.read_json(os.path.join(home_dir, training_params_dir, "%s.json" % config_file), typ="series", convert_axes=False)
 for k, v in config.items():
-    label_col=k
-    for k1, v1 in v.items():
-        method_name = k1
-        for k2, v2 in v1.items():
-            cls_method=k2
+    if k not in ['ui_data']:
+        label_col=k
+        for k1, v1 in v.items():
+            method_name = k1
+            for k2, v2 in v1.items():
+                cls_method=k2
 
 bucket_method = method_name.split("_")[0]
 cls_encoding = method_name.split("_")[1]
