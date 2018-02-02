@@ -99,7 +99,7 @@ with open(outfile, 'w') as fout:
     # else:
     #     dtypes[dataset_manager.label_col] = "str" # if classification, preserve and do not interpret dtype of label
 
-    data = pd.read_csv(os.path.join(home_dir, logs_dir, train_file), sep=";", dtype=dtypes)
+    data = pd.read_csv(os.path.join(home_dir, logs_dir, train_file), sep=",|;", dtype=dtypes, engine="python")
     #data = data.tail(10000)
     data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])
 

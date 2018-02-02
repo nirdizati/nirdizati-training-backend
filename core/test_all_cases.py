@@ -33,7 +33,7 @@ for col in dataset_manager.dynamic_num_cols + dataset_manager.static_num_cols:
 # else:
 #     dtypes[dataset_manager.label_col] = "str"  # if classification, preserve and do not interpret dtype of label
 
-test = pd.read_csv(test_file, sep=";", dtype=dtypes)
+test = pd.read_csv(test_file, sep=",|;", dtype=dtypes, engine="python")
 #test = test.drop(label_col, axis = 1)
 test[dataset_manager.timestamp_col] = pd.to_datetime(test[dataset_manager.timestamp_col])
 
