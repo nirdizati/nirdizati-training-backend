@@ -24,7 +24,7 @@ python train.py BPIC15_4.csv zero agg rf remtime
 
 ```
 
-This script assumes that you have a training configuration file in `core/training_params/{log-name-without-extension}.json
+This script assumes that you have a training cs.ut.configuration file in `core/training_params/{log-name-without-extension}.json
 ` with the following structure:
 
 ```json
