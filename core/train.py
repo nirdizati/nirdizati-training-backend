@@ -50,7 +50,7 @@ encoding_dict = {
 
 methods = encoding_dict[cls_encoding]
 
-pickle_file = os.path.join(home_dir, pickles_dir, '%s_%s_%s_%s.pkl' % (dataset_ref, method_name, cls_method, label_col))
+pickle_file = os.path.join(home_dir, pickles_dir, '%s_%s.pkl' % (dataset_ref, config_file))
 
 random_state = 22
 fillna = True
