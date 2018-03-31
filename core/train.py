@@ -35,12 +35,11 @@ for k, v in config.items():
     if k not in ['ui_data']:
         label_col=k
         for k1, v1 in v.items():
-            method_name = k1
+            bucket_method = k1
             for k2, v2 in v1.items():
-                cls_method=k2
-
-bucket_method = method_name.split("_")[0]
-cls_encoding = method_name.split("_")[1]
+                cls_encoding=k2
+                for k3, v3 in v2.items():
+                    cls_method=k3
 
 encoding_dict = {
     "laststate": ["static", "last"],
@@ -103,7 +102,7 @@ detailed_results_file = os.path.join(home_dir, detailed_results_dir,
 detailed_results = pd.DataFrame()
 
 with open(outfile, 'w') as fout:
-    fout.write("%s,%s,%s,%s,%s,%s\n" % ("label_col", "method", "cls", "nr_events", "metric", "score"))
+    fout.write("%s,%s,%s,%s,%s,%s,%s\n" % ("label_col", "bucket_method", "feat_encoding", "cls", "nr_events", "metric", "score"))
 
     # split data into training and test sets
     train, test = dataset_manager.split_data(data, train_ratio=0.80)
@@ -129,7 +128,7 @@ with open(outfile, 'w') as fout:
                      'n_clusters': None,
                      'random_state': random_state}
     if bucket_method == "cluster":
-        bucketer_args['n_clusters'] = config[label_col][method_name][cls_method]['n_clusters']
+        bucketer_args['n_clusters'] = config[label_col][bucket_method][cls_encoding][cls_method]['n_clusters']
 
     cls_encoder_args = {'case_id_col': dataset_manager.case_id_col,
                         'static_cat_cols': dataset_manager.static_cat_cols,
@@ -151,10 +150,10 @@ with open(outfile, 'w') as fout:
 
         # set optimal params for this bucket
         if bucket_method == "prefix":
-            cls_args = {k: v for k, v in config[label_col][method_name][cls_method][u'%s' % bucket].items() if
+            cls_args = {k: v for k, v in config[label_col][bucket_method][cls_encoding][cls_method][u'%s' % bucket].items() if
                         k not in ['n_clusters']}
         else:
-            cls_args = {k: v for k, v in config[label_col][method_name][cls_method].items() if
+            cls_args = {k: v for k, v in config[label_col][bucket_method][cls_encoding][cls_method].items() if
                         k not in ['n_clusters']}
         cls_args['mode'] = mode
         cls_args['random_state'] = random_state
@@ -264,7 +263,7 @@ with open(outfile, 'w') as fout:
                 preds_bucket = preds_bucket.idxmax(axis=1)
 
             case_ids = list(dt_test_bucket.groupby(dataset_manager.case_id_col).first().index)
-            current_results = pd.DataFrame({"label_col": label_col, "method": method_name, "cls": cls_method, "nr_events": nr_events, "predicted": preds_bucket, "actual": test_y_bucket.values, "case_id": case_ids})
+            current_results = pd.DataFrame({"label_col": label_col, "bucket_method": bucket_method, "feat_encoding": cls_encoding, "cls": cls_method, "nr_events": nr_events, "predicted": preds_bucket, "actual": test_y_bucket.values, "case_id": case_ids})
             detailed_results = pd.concat([detailed_results, current_results])
 
         score = {}
@@ -285,7 +284,7 @@ with open(outfile, 'w') as fout:
                 print("logloss cannot be calculated")
 
         for k, v in score.items():
-            fout.write("%s,%s,%s,%s,%s,%s\n" % (label_col, method_name, cls_method, nr_events, k, v))
+            fout.write("%s,%s,%s,%s,%s,%s,%s\n" % (label_col, bucket_method, cls_encoding, cls_method, nr_events, k, v))
 
     print("\n")
 
