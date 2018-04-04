@@ -7,14 +7,13 @@ import numpy as np
 from numpy import array
 import pandas as pd
 
-from sklearn.metrics import mean_absolute_error, mean_squared_error
-from sklearn.metrics import f1_score, accuracy_score, log_loss
 from sklearn.pipeline import Pipeline, FeatureUnion
 
 import BucketFactory
 import ClassifierFactory
 import EncoderFactory
 from DatasetManager import DatasetManager
+import evaluation
 
 train_file = sys.argv[1]
 config_file = sys.argv[2]
@@ -266,26 +265,17 @@ with open(outfile, 'w') as fout:
             current_results = pd.DataFrame({"label_col": label_col, "bucket_method": bucket_method, "feat_encoding": cls_encoding, "cls": cls_method, "nr_events": nr_events, "predicted": preds_bucket, "actual": test_y_bucket.values, "case_id": case_ids})
             detailed_results = pd.concat([detailed_results, current_results])
 
-        score = {}
-        if mode == "regr":
-            score["mae"] = mean_absolute_error(test_y, preds)
-            score["rmse"] = np.sqrt(mean_squared_error(test_y, preds))
-            score["nmae"] = score["mae"] / test[dataset_manager.label_col].mean()
-            score["nrmse"] = score["rmse"] / test[dataset_manager.label_col].mean()
-        elif len(set(test_y)) < 2:
-            score = {"acc":0, "f1": 0, "logloss": 0}
-        else:
-            preds_labels = preds.idxmax(axis=1)
-            score["acc"] = accuracy_score(test_y, preds_labels)
-            score["f1"] = f1_score(test_y, preds_labels, average='weighted')
-            try:
-                score["logloss"] = log_loss(test_y, preds, labels=preds.columns)
-            except ValueError:
-                print("logloss cannot be calculated")
-
+        # get average scores for this prefix length
+        score = evaluation.get_score(test_y, preds, mode=mode)
         for k, v in score.items():
             fout.write("%s,%s,%s,%s,%s,%s,%s\n" % (label_col, bucket_method, cls_encoding, cls_method, nr_events, k, v))
 
+    '''
+    # get average scores across all evaluated prefix lengths
+    score = evaluation.get_score(detailed_results.actual, detailed_results.predicted, mode=mode)
+    for k, v in score.items():
+        fout.write("%s,%s,%s,%s,%s,%s,%s\n" % (label_col, bucket_method, cls_encoding, cls_method, "0", k, v))
+    '''
     print("\n")
 
 if mode == "class":
