@@ -15,11 +15,8 @@ import EncoderFactory
 from DatasetManager import DatasetManager
 import evaluation
 
-train_file = sys.argv[1]
-config_file = sys.argv[2]
+config_file = sys.argv[1]
 bucket_encoding = "agg"
-
-dataset_ref = os.path.splitext(train_file)[0]
 home_dirs = os.environ['PYTHONPATH'].split(":")
 home_dir = home_dirs[0] # if there are multiple PYTHONPATHs, choose the first
 logs_dir = "logdata/"
@@ -30,6 +27,9 @@ feature_importance_dir = "results/feature_importance/"
 pickles_dir = "pkl/"
 
 config = pd.read_json(os.path.join(home_dir, training_params_dir, "%s.json" % config_file), typ="series", convert_axes=False)
+train_file = config["ui_data"]["log_file"]
+dataset_ref = os.path.splitext(os.path.basename(train_file))[0]
+
 for k, v in config.items():
     if k not in ['ui_data']:
         label_col=k
@@ -62,7 +62,7 @@ dtypes = {col: "str" for col in dataset_manager.dynamic_cat_cols + dataset_manag
 for col in dataset_manager.dynamic_num_cols + dataset_manager.static_num_cols:
     dtypes[col] = "float"
 
-data = pd.read_csv(os.path.join(home_dir, logs_dir, train_file), sep=",|;", dtype=dtypes, engine="python")
+data = pd.read_csv(train_file, sep=",|;", dtype=dtypes, engine="python")
 data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])
 
 # add remaining time column to the dataset if it does not exist yet
