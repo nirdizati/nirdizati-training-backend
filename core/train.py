@@ -108,7 +108,7 @@ with open(outfile, 'w') as fout:
 
     # consider prefix lengths until 90th percentile of case length
     min_prefix_length = 1
-    max_prefix_length = min(15, dataset_manager.get_case_length_quantile(data, 0.9))
+    max_prefix_length = min(25, dataset_manager.get_case_length_quantile(data, 0.9))
     del data
 
     # create prefix logs
