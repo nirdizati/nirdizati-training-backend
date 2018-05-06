@@ -31,7 +31,7 @@ train_file = config["ui_data"]["log_file"]
 dataset_ref = os.path.splitext(os.path.basename(train_file))[0]
 
 for k, v in config.items():
-    if k not in ['ui_data']:
+    if k not in ['ui_data'] and k not in ['evaluation']:
         label_col=k
         for k1, v1 in v.items():
             bucket_method = k1
@@ -270,12 +270,11 @@ with open(outfile, 'w') as fout:
         for k, v in score.items():
             fout.write("%s,%s,%s,%s,%s,%s,%s\n" % (label_col, bucket_method, cls_encoding, cls_method, nr_events, k, v))
 
-    '''
+
     # get average scores across all evaluated prefix lengths
-    score = evaluation.get_score(detailed_results.actual, detailed_results.predicted, mode=mode)
-    for k, v in score.items():
-        fout.write("%s,%s,%s,%s,%s,%s,%s\n" % (label_col, bucket_method, cls_encoding, cls_method, "0", k, v))
-    '''
+    config.at["evaluation"] = evaluation.get_agg_score(detailed_results.actual, detailed_results.predicted, mode=mode)
+    config.to_json(os.path.join(home_dir, training_params_dir, "%s.json" % config_file))
+
     print("\n")
 
 if mode == "class":

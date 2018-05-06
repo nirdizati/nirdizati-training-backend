@@ -20,3 +20,13 @@ def get_score(actual, predicted, mode):
         except ValueError:
             print("logloss cannot be calculated")
     return score
+
+def get_agg_score(actual, predicted, mode):
+    score = {}
+    if mode == "regr":
+        score["metric"] = "mae"
+        score["value"] = mean_absolute_error(actual, predicted)
+    else:
+        score["metric"] = "acc"
+        score["value"] = "%.4f"%accuracy_score(actual, predicted)
+    return score
