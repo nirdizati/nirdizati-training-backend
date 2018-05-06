@@ -28,5 +28,5 @@ def get_agg_score(actual, predicted, mode):
         score["value"] = mean_absolute_error(actual, predicted)
     else:
         score["metric"] = "acc"
-        score["value"] = "%.4f"%accuracy_score(actual, predicted)
+        score["value"] = accuracy_score(actual, predicted)
     return score
