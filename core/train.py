@@ -2,6 +2,7 @@ import os
 import pickle
 import sys
 import operator
+from pathlib import Path
 
 import numpy as np
 from numpy import array
@@ -15,18 +16,20 @@ import EncoderFactory
 from DatasetManager import DatasetManager
 import evaluation
 
+
 config_file = sys.argv[1]
 bucket_encoding = "agg"
 home_dirs = os.environ['PYTHONPATH'].split(":")
-home_dir = home_dirs[0] # if there are multiple PYTHONPATHs, choose the first
+#home_dir = home_dirs[0] # if there are multiple PYTHONPATHs, choose the first
 logs_dir = "logdata/"
-training_params_dir = "core/training_params/"
-results_dir = "results/validation/"
-detailed_results_dir = "results/detailed/"
-feature_importance_dir = "results/feature_importance/"
-pickles_dir = "pkl/"
+training_params_dir =  Path("core/training_params/")
+results_dir = Path("results/validation/")
+detailed_results_dir = Path("results/detailed/")
+feature_importance_dir = Path("results/feature_importance/")
+pickles_dir = Path("pkl/")
 
-config = pd.read_json(os.path.join(home_dir, training_params_dir, "%s.json" % config_file), typ="series", convert_axes=False)
+path_to_open = Path.cwd().parent / training_params_dir / ("%s.json" % config_file)
+config = pd.read_json(path_to_open , typ="series", convert_axes=False)
 train_file = config["ui_data"]["log_file"]
 dataset_ref = os.path.splitext(os.path.basename(train_file))[0]
 
@@ -48,7 +51,8 @@ encoding_dict = {
 
 methods = encoding_dict[cls_encoding]
 
-pickle_file = os.path.join(home_dir, pickles_dir, '%s_%s.pkl' % (dataset_ref, config_file))
+pickle_file = Path.cwd().parent / pickles_dir /  ('%s_%s.pkl' % (dataset_ref, config_file))
+#pickle_file = os.path.join(home_dir, pickles_dir, '%s_%s.pkl' % (dataset_ref, config_file))
 
 random_state = 22
 fillna = True
@@ -94,10 +98,14 @@ except ValueError:
     else:
         sys.exit("Undefined target variable")
 
-outfile = os.path.join(home_dir, results_dir,
-                       "validation_%s_%s_%s.csv" % (dataset_ref, config_file, mode))
-detailed_results_file = os.path.join(home_dir, detailed_results_dir,
-                       "detailed_%s_%s_%s.csv" % (dataset_ref, config_file, mode))
+outfile = Path.cwd().parent / results_dir / "validation_%s_%s_%s.csv" % (dataset_ref, config_file, mode)
+#outfile = os.path.join(home_dir, results_dir,
+#                       "validation_%s_%s_%s.csv" % (dataset_ref, config_file, mode))
+
+detailed_results_file = Path.cwd().parent / detailed_results_dir / \
+                        "detailed_%s_%s_%s.csv" % (dataset_ref, config_file, mode)
+#detailed_results_file = os.path.join(home_dir, detailed_results_dir,
+#                       "detailed_%s_%s_%s.csv" % (dataset_ref, config_file, mode))
 detailed_results = pd.DataFrame()
 
 with open(outfile, 'w') as fout:
@@ -188,8 +196,11 @@ with open(outfile, 'w') as fout:
 
         importances = pd.DataFrame.from_dict(feats, orient='index').rename(columns={0: 'Gini-importance'})
         importances = importances.sort_values(by='Gini-importance', ascending=False)
-        importances.head(20).to_csv(os.path.join(home_dir, feature_importance_dir, "feat_importance_%s_%s_%s.csv" %
-                                        (dataset_ref, config_file, bucket)))
+        importances.head(20).to_csv(Path.cwd().parent / feature_importance_dir / "feat_importance_%s_%s_%s.csv" %
+                                                 (dataset_ref, config_file, bucket))
+
+#        importances.head(20).to_csv(os.path.join(home_dir, feature_importance_dir, "feat_importance_%s_%s_%s.csv" %
+ #                                       (dataset_ref, config_file, bucket)))
 
     with open(pickle_file, 'wb') as f:
         pickle.dump(pipelines, f)
@@ -273,7 +284,7 @@ with open(outfile, 'w') as fout:
 
     # get average scores across all evaluated prefix lengths
     config.at["evaluation"] = evaluation.get_agg_score(detailed_results.actual, detailed_results.predicted, mode=mode)
-    config.to_json(os.path.join(home_dir, training_params_dir, "%s.json" % config_file))
+    config.to_json(Path.cwd().parent / training_params_dir / "%s.json" % config_file)
 
     print("\n")
 

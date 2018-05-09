@@ -2,6 +2,7 @@ import os
 import itertools
 import sys
 import operator
+from pathlib import Path
 
 import numpy as np
 from numpy import array
@@ -29,8 +30,11 @@ home_dir = home_dirs[0]
 logs_dir = "logdata/"
 results_dir = "results/CV/"
 
-if not os.path.exists(os.path.join(home_dir, results_dir)):
-    os.makedirs(os.path.join(home_dir, results_dir))
+if not os.path.exists(Path.cwd().parent / results_dir):
+    os.makedirs(Path.cwd().parent / results_dir)
+# if not os.path.exists(os.path.join(home_dir, results_dir)):
+#     os.makedirs(os.path.join(home_dir, results_dir))
+
 
 encoding_dict = {
     "laststate": ["static", "last"],
@@ -72,7 +76,10 @@ bucketer_params_names = list(bucketer_params.keys())
 cls_params_names = list(cls_params.keys())
 
 
-outfile = os.path.join(home_dir, results_dir, "CV_%s_%s_%s_%s.csv"%(dataset_ref, method_name, cls_method, label_col))
+outfile = Path.cwd().parent / results_dir / ("CV_%s_%s_%s_%s.csv" %
+                                             (dataset_ref, method_name, cls_method, label_col))
+
+# outfile = os.path.join(home_dir, results_dir, "CV_%s_%s_%s_%s.csv"%(dataset_ref, method_name, cls_method, label_col))
 
 
 train_ratio = 0.8
@@ -99,7 +106,8 @@ with open(outfile, 'w') as fout:
     # else:
     #     dtypes[dataset_manager.label_col] = "str" # if classification, preserve and do not interpret dtype of label
 
-    data = pd.read_csv(os.path.join(home_dir, logs_dir, train_file), sep=",|;", dtype=dtypes, engine="python")
+    data = pd.read_csv(Path.cwd().parent / logs_dir / train_file, sep=",|;", dtype=dtypes, engine="python")
+    # data = pd.read_csv(os.path.join(home_dir, logs_dir, train_file), sep=",|;", dtype=dtypes, engine="python")
     #data = data.tail(10000)
     data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])
 

@@ -1,5 +1,6 @@
 import sys
 import os
+from pathlib import Path
 
 import pandas as pd
 import numpy as np
@@ -8,7 +9,9 @@ from sklearn.model_selection import KFold, StratifiedKFold
 
 home_dirs = os.environ['PYTHONPATH'].split(":")
 home_dir = home_dirs[0]
-dataset_params_dir = os.path.join(home_dir, "core/dataset_params/")
+
+dataset_params_dir = Path.cwd().parent / "core/dataset_params/"
+#dataset_params_dir = os.path.join(home_dir, "core/dataset_params/")
 unique_values_threshold = 10  # threshold to distinguish classification vs regression
 
 class DatasetManager:
@@ -17,7 +20,7 @@ class DatasetManager:
         self.dataset_name = dataset_name
         self.label_col = label_col
 
-        dataset_params = pd.read_json(os.path.join(dataset_params_dir, "%s.json" % self.dataset_name), orient="index", typ="series")
+        dataset_params = pd.read_json(dataset_params_dir / ("%s.json" % self.dataset_name), orient="index", typ="series")
 
         self.case_id_col = dataset_params['case_id_col']
         self.activity_col = dataset_params['activity_col']

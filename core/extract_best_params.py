@@ -1,4 +1,6 @@
 import glob
+from pathlib import Path
+
 import pandas as pd
 import os
 import numpy as np
@@ -10,7 +12,8 @@ train_file = argv[1]
 dataset_ref = os.path.splitext(train_file)[0]
 home_dirs = os.environ['PYTHONPATH'].split(":")
 home_dir = home_dirs[0]
-cv_results_dir = os.path.join(home_dir, "results/CV/")
+cv_results_dir = Path.cwd().parent /  "results/CV/"
+#cv_results_dir = os.path.join(home_dir, "results/CV/")
 training_params_dir = "core/training_params/"
 
 # read all files from directory to df       
@@ -109,5 +112,7 @@ for row in data_best[data_best.method.str.contains("prefix")][
         best_params[row[0]][row[1]][row[2]][row[3]][param] = value
 
 # write to file
-with open(os.path.join(home_dir, training_params_dir, "%s.json" % dataset_ref), "w") as fout:
+# with open(os.path.join(home_dir, training_params_dir, "%s.json" % dataset_ref), "w") as fout:
+#     json.dump(best_params, fout, indent=3)
+with open(Path.cwd().parent /  training_params_dir / ("%s.json" % dataset_ref), "w") as fout:
     json.dump(best_params, fout, indent=3)
