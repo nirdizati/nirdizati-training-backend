@@ -67,6 +67,7 @@ for col in dataset_manager.dynamic_num_cols + dataset_manager.static_num_cols:
     dtypes[col] = "float"
 
 data = pd.read_csv(train_file, sep=",|;", dtype=dtypes, engine="python")
+
 data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])
 
 # add remaining time column to the dataset if it does not exist yet
@@ -98,12 +99,12 @@ except ValueError:
     else:
         sys.exit("Undefined target variable")
 
-outfile = Path.cwd().parent / results_dir / "validation_%s_%s_%s.csv" % (dataset_ref, config_file, mode)
+outfile = Path.cwd().parent / results_dir / ("validation_%s_%s_%s.csv" % (dataset_ref, config_file, mode))
 #outfile = os.path.join(home_dir, results_dir,
 #                       "validation_%s_%s_%s.csv" % (dataset_ref, config_file, mode))
 
 detailed_results_file = Path.cwd().parent / detailed_results_dir / \
-                        "detailed_%s_%s_%s.csv" % (dataset_ref, config_file, mode)
+                        ("detailed_%s_%s_%s.csv" % (dataset_ref, config_file, mode))
 #detailed_results_file = os.path.join(home_dir, detailed_results_dir,
 #                       "detailed_%s_%s_%s.csv" % (dataset_ref, config_file, mode))
 detailed_results = pd.DataFrame()
@@ -196,8 +197,8 @@ with open(outfile, 'w') as fout:
 
         importances = pd.DataFrame.from_dict(feats, orient='index').rename(columns={0: 'Gini-importance'})
         importances = importances.sort_values(by='Gini-importance', ascending=False)
-        importances.head(20).to_csv(Path.cwd().parent / feature_importance_dir / "feat_importance_%s_%s_%s.csv" %
-                                                 (dataset_ref, config_file, bucket))
+        importances.head(20).to_csv(Path.cwd().parent / feature_importance_dir / ("feat_importance_%s_%s_%s.csv" %
+                                                 (dataset_ref, config_file, bucket)))
 
 #        importances.head(20).to_csv(os.path.join(home_dir, feature_importance_dir, "feat_importance_%s_%s_%s.csv" %
  #                                       (dataset_ref, config_file, bucket)))
@@ -284,7 +285,7 @@ with open(outfile, 'w') as fout:
 
     # get average scores across all evaluated prefix lengths
     config.at["evaluation"] = evaluation.get_agg_score(detailed_results.actual, detailed_results.predicted, mode=mode)
-    config.to_json(Path.cwd().parent / training_params_dir / "%s.json" % config_file)
+    config.to_json(Path.cwd().parent / training_params_dir / ("%s.json" % config_file))
 
     print("\n")
 
