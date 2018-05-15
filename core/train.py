@@ -21,7 +21,6 @@ config_file = sys.argv[1]
 bucket_encoding = "agg"
 home_dirs = os.environ['PYTHONPATH'].split(":")
 #home_dir = home_dirs[0] # if there are multiple PYTHONPATHs, choose the first
-logs_dir = "logdata/"
 training_params_dir =  Path("core/training_params/")
 results_dir = Path("results/validation/")
 detailed_results_dir = Path("results/detailed/")
