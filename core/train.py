@@ -108,7 +108,7 @@ detailed_results_file = Path.cwd().parent / detailed_results_dir / \
 #                       "detailed_%s_%s_%s.csv" % (dataset_ref, config_file, mode))
 detailed_results = pd.DataFrame()
 
-with open(outfile, 'w') as fout:
+with open(str(outfile), 'w') as fout:
     fout.write("%s,%s,%s,%s,%s,%s,%s\n" % ("label_col", "bucket_method", "feat_encoding", "cls", "nr_events", "metric", "score"))
 
     # split data into training and test sets
@@ -202,7 +202,7 @@ with open(outfile, 'w') as fout:
 #        importances.head(20).to_csv(os.path.join(home_dir, feature_importance_dir, "feat_importance_%s_%s_%s.csv" %
  #                                       (dataset_ref, config_file, bucket)))
 
-    with open(pickle_file, 'wb') as f:
+    with open(str(pickle_file), 'wb') as f:
         pickle.dump(pipelines, f)
         pickle.dump(bucketer, f)
         pickle.dump(dataset_manager, f)
