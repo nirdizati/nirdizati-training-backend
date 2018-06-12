@@ -88,12 +88,12 @@ class DatasetManager:
         return (train, test)
 
 
-    def generate_prefix_data(self, data, min_length, max_length, comparator):
+    def generate_prefix_data(self, data, min_length, max_length, comparator, gap=1):
         # generate prefix data (each possible prefix becomes a trace)
         data['case_length'] = data.groupby(self.case_id_col)[self.activity_col].transform(len)
 
         dt_prefixes = data[comparator(data['case_length'], min_length)].groupby(self.case_id_col).head(min_length)
-        for nr_events in range(min_length+1, max_length+1):
+        for nr_events in range(min_length+1, max_length+1, gap):
             tmp = data[comparator(data['case_length'], nr_events)].groupby(self.case_id_col).head(nr_events)
             tmp[self.case_id_col] = tmp[self.case_id_col].apply(lambda x: "%s_%s"%(x, nr_events))
             dt_prefixes = pd.concat([dt_prefixes, tmp], axis=0)

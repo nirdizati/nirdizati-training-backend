@@ -121,7 +121,7 @@ with open(str(outfile), 'w') as fout:
 
     # create prefix logs
     # cases that have just finished are included in the training set, but not in the test
-    dt_train_prefixes = dataset_manager.generate_prefix_data(train, min_prefix_length, max_prefix_length, comparator=operator.ge)
+    dt_train_prefixes = dataset_manager.generate_prefix_data(train, min_prefix_length, max_prefix_length, comparator=operator.ge, gap=2)
     dt_test_prefixes = dataset_manager.generate_prefix_data(test, min_prefix_length, max_prefix_length, comparator=operator.gt)
 
     print(dt_train_prefixes.shape)
