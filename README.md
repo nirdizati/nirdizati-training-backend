@@ -1,4 +1,12 @@
-## Training
+This repo contains scripts to train models for [Nirdizati](http://nirdizati.com) predictive process monitoring engine.
+
+## Requirements
+Tested with Python 3.5 and Python 3.6. Note Python 2.x is not supported anymore. Install the necessary packages with
+```bash
+pip install -r requirements.txt
+```
+
+## Training predictive models
 ```bash
 export PYTHONPATH=....../PredictiveMethods/
 cd PredictiveMethods/core/
