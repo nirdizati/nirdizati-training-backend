@@ -2,3 +2,7 @@
 *
 # Except this file
 !.gitignore
+# Except example log file
+!bpi17_sample.csv
+# Except sample trace
+!1170931347.json

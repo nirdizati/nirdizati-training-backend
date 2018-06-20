@@ -52,27 +52,7 @@ This script assumes that you have a training configuration file `core/training_p
 * `target` - variable that you want to predict (see below). The prediction problem type (classification or regression) is determined automatically based on the number of unique levels of a target variable and whether or not it can be parsed as a numeric series.
 
 
-Example:
-```json
-{
-  "remtime": {
-    "zero": {
-      "agg": {
-        "xgb": {
-          "colsample_bytree": 0.7,
-          "max_depth": 5,
-          "n_estimators": 300,
-          "subsample": 0.7,
-          "learning_rate": 0.04
-        }
-      }
-    }
-  },
-  "ui_data": {
-    "log_file": "/home/user/git/nirdizati-training-ui/PredictiveMethods/logdata/repairExample2_ENG.csv",
-  }
-}
-```
+[Example of a training configuration file](https://github.com/nirdizati/nirdizati-training-backend/blob/master/core/training_params/myconfig.json)
 
 
 ### What can be predicted?
@@ -108,12 +88,15 @@ Default hyperparameters for XGBoost predictor:
 ```bash
 export PYTHONPATH=....../PredictiveMethods/
 cd PredictiveMethods/core/
-python test.py path_to_single_test_prefix.json path_to_pickle_model_filename 
+python predict-trace.py path_to_single_test_prefix.json path_to_pickle_model_filename 
 ```
 
 Example:
 ```bash
-python test.py test_BPIC15_4.json ../pkl/BPIC15_4_zero_agg_rf_remtime.pkl
+python predict-trace.py ../logdata/1170931347.json ../pkl/bpi17_sample_myconfig.pkl
 ```
 
-The output should be printed to stdout
+The output should be printed to stdout, for example:
+```bash
+[{"remtime":11.6899995804}]
+```

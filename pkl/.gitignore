@@ -2,3 +2,5 @@
 *
 # Except this file
 !.gitignore
+# Except example pickle model
+!bpi17_sample_myconfig.pkl

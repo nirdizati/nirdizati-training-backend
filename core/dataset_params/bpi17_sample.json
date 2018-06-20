@@ -1,0 +1,24 @@
+{
+  "static_cat_cols": [
+    "ApplicationType",
+    "LoanGoal"
+  ],
+  "static_num_cols": [],
+  "dynamic_cat_cols": [
+    "Action",
+    "EventOrigin",
+    "Resource"
+  ],
+  "dynamic_num_cols": [
+    "duration",
+    "FirstWithdrawalAmount",
+    "NumberOfTerms",
+    "OfferedAmount",
+    "event_nr"
+  ],
+  "case_id_col": "Case ID",
+  "activity_col": "Activity",
+  "timestamp_col": "Complete Timestamp",
+  "ignore": "Variant index",
+  "future_values": "label"
+}

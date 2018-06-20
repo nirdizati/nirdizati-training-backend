@@ -46,7 +46,7 @@ else:
     # make actual predictions
     preds = pipelines[bucket].predict_proba(test)
     if preds.ndim == 1:  #regression
-        preds = pd.DataFrame(np.around(preds.clip(min=0)), columns=[dataset_manager.label_col])
+        preds = pd.DataFrame(preds.clip(min=0), columns=[dataset_manager.label_col])
 
     preds = preds.to_json(orient='records')
     print(preds)

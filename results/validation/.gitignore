@@ -2,3 +2,5 @@
 *
 # Except this file
 !.gitignore
+# Except example vaidation results file
+!validation_bpi17_sample_myconfig_regr.csv
