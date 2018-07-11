@@ -8,12 +8,12 @@ pip install -r requirements.txt
 
 ## Training predictive models
 ```bash
-export PYTHONPATH=....../PredictiveMethods/
-cd PredictiveMethods/core/
+export PYTHONPATH=../nirdizati-training-backend/
+cd core/
 python train.py training-config-ID 
 ```
 
-* `training-config-ID` - JSON file (without extension) that contains training configuration (see below), must be placed under `PredictiveMethods/core/training_params/` directory
+* `training-config-ID` - JSON file (without extension) that contains training configuration (see below), must be placed under `core/training_params/` directory
 
 Example:
 
@@ -65,10 +65,10 @@ This script assumes that you have a training configuration file `core/training_p
 
 ### Output of the training script:
 
-* Fitted model - `PredictiveMethods/pkl/`
-* Validation results by prefix length - `PredictiveMethods/results/validation/`
-* Detailed validation results - `PredictiveMethods/results/detailed/`
-* Data on feature importance - `PredictiveMethods/results/feature_importance/`
+* Fitted model - `pkl/`
+* Validation results by prefix length - `results/validation/`
+* Detailed validation results - `results/detailed/`
+* Data on feature importance - `results/feature_importance/`
 
 
 ### How to choose default training parameters?
@@ -86,8 +86,8 @@ Default hyperparameters for XGBoost predictor:
 
 ## Test for an ongoing case
 ```bash
-export PYTHONPATH=....../PredictiveMethods/
-cd PredictiveMethods/core/
+export PYTHONPATH=....../
+cd core/
 python predict-trace.py path_to_single_test_prefix.json path_to_pickle_model_filename 
 ```
 

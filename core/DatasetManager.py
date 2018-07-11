@@ -93,7 +93,7 @@ class DatasetManager:
         data['case_length'] = data.groupby(self.case_id_col)[self.activity_col].transform(len)
 
         dt_prefixes = data[comparator(data['case_length'], min_length)].groupby(self.case_id_col).head(min_length)
-        for nr_events in range(min_length+1, max_length+1, gap):
+        for nr_events in range(min_length+gap, max_length+1, gap):
             tmp = data[comparator(data['case_length'], nr_events)].groupby(self.case_id_col).head(nr_events)
             tmp[self.case_id_col] = tmp[self.case_id_col].apply(lambda x: "%s_%s"%(x, nr_events))
             dt_prefixes = pd.concat([dt_prefixes, tmp], axis=0)
