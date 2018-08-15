@@ -31,7 +31,10 @@ state_dir = "collator_state"
 case_id_field = 'concept:name'
 event_nr_field = 'event_nr'
 
-print("Collating events from \"{}\" into \"{}\" with control channel \"{}\" every {} seconds".format(source_topic, destination_topic, control_topic, delay))
+print("Collating events from \"{}\" into \"{}\" with control channel \"{}\" every {} seconds".format(source_topic,
+                                                                                                     destination_topic,
+                                                                                                     control_topic,
+                                                                                                     delay))
 consumer = KafkaConsumer(source_topic, bootstrap_servers=bootstrap_server, auto_offset_reset='earliest')
 controlConsumer = KafkaConsumer(control_topic, bootstrap_servers=bootstrap_server, auto_offset_reset='earliest')
 producer = KafkaProducer(bootstrap_servers=bootstrap_server)
@@ -77,16 +80,17 @@ while True:
                 if event_nr is None or event_nr > len(case_prefix):
                     case_prefix.append(event.get('event_attributes'))
                     if event_nr is not None and event_nr != len(case_prefix):
-                        print("Event is labeled as {} but case prefix only has {} events".format(event_nr, len(case_prefix)))
+                        print("Event is labeled as {} but case prefix only has {} events".format(event_nr,
+                                                                                                 len(case_prefix)))
                     open(file_path, mode='w').write(json.dumps(case_prefix, indent="\t"))
                     print("Collated event {} of case {}".format(len(case_prefix), case_id))
                     for predictorId in event.get('predictors'):
-                        prediction_job = { "log_id":          log_id,
-                                           "case_id":         case_id,
-                                           "event_nr":        event_nr,
-                                           "predictor":       predictorId,
-                                           "case_attributes": event.get('case_attributes'),
-                                           "prefix":          case_prefix }
+                        prediction_job = {"log_id": log_id,
+                                          "case_id": case_id,
+                                          "event_nr": event_nr,
+                                          "predictor": predictorId,
+                                          "case_attributes": event.get('case_attributes'),
+                                          "prefix": case_prefix}
                         producer.send(destination_topic, json.dumps(prediction_job).encode('utf-8'))
                     time.sleep(delay)
                 else:

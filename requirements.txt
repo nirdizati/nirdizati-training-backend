@@ -3,3 +3,4 @@ numpy>=1.13.0
 scikit_learn>=0.18.0
 scipy>=1.0.0
 xgboost>=0.7
+kafka-python>=1.4

@@ -68,6 +68,7 @@ def getPredictor(predictor_id):
     predictor_cache[predictor_id] = pipelines, bucketer, dataset_manager, dtypes
     return predictor_cache[predictor_id]
 
+
 """ As case prefixes arrive on prefixes_topic, execute each required predictor and forward the prediction to predictions_topic """
 while True:
     rawControlMessage = controlConsumer.poll()
@@ -99,7 +100,7 @@ while True:
                     for case_attribute in jsonValue["case_attributes"]:
                         if not case_attribute in event:
                             event[case_attribute] = jsonValue["case_attributes"][case_attribute]
-            
+
                 prefix = json.dumps(jsonPrefix)
                 """
                 print("-- INPUT --")
@@ -118,7 +119,7 @@ while True:
                 else:
                     # make actual predictions
                     preds = pipelines[bucket].predict_proba(test)
-                    if preds.ndim == 1:  #regression
+                    if preds.ndim == 1:  # regression
                         preds = pd.DataFrame(preds.clip(min=0), columns=[dataset_manager.label_col])
 
                     preds = preds.to_json(orient='records')
@@ -128,7 +129,7 @@ while True:
                         "log_id":      log_id,
                         "case_id":     jsonValue["case_id"],
                         "event_nr":    len(jsonValue["prefix"]),
-                        "predictions": { tag: json.loads(preds)[0] }
+                        "predictions": {tag: json.loads(preds)[0]}
                     }
                     print("-- OUTPUT --")
                     print(json.dumps(output))
