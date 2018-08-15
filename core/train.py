@@ -203,9 +203,9 @@ with open(str(outfile), 'w') as fout:
  #                                       (dataset_ref, config_file, bucket)))
 
     with open(str(pickle_file), 'wb') as f:
-        pickle.dump(pipelines, f)
-        pickle.dump(bucketer, f)
-        pickle.dump(dataset_manager, f)
+        pickle.dump(pipelines, f, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(bucketer, f, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(dataset_manager, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     prefix_lengths_test = dt_test_prefixes.groupby(dataset_manager.case_id_col).size()
 
