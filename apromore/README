@@ -27,7 +27,11 @@ Ensure that Python 3 is available.  This procedure is known to work with Python 
 From the nirdizati-training-backend directory, install additional required libraries using the following commands:
 
 $ pip install -r requirements.txt
-$ pip install Kafka-python
+
+Modify PYTHONPATH in your shell environment to include the nirdizati-training-backend and nirdizati-training-backend/core directories.
+For instance, in bash this can be achieved by adding something similar to the following in ~/.profile:
+
+$ export PYTHONPATH="$HOME/Work/nirdizati-training-backend:$HOME/Work/nirdizati-training-backend/core"
 
 Let's presume that Apromore will be running at localhost:9000 and the Kafka broker at localhost:9092.
 Enter the nirdizati-training-backend/apromore subdirectory and start the collator and predictor Kafka processors by executing the following commands:
