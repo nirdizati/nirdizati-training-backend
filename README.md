@@ -1,4 +1,4 @@
-This repo contains scripts to train models for [Nirdizati](http://nirdizati.com) predictive process monitoring engine.
+This repo contains scripts to train models for [Nirdizati](http://nirdizati.com) predictive process monitoring engine. The following instructions are for the standalone use. For use with [Apromore](http://apromore.org/), please refer to [these instructions](https://github.com/nirdizati/nirdizati-training-backend/blob/master/apromore/README.md).
 
 ## Requirements
 Tested with Python 3.5 and Python 3.6. Note Python 2.x is not supported anymore. Install the necessary packages with
