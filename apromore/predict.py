@@ -31,7 +31,7 @@ import pandas as pd
 import json
 import kafka
 import tempfile
-import urllib
+import urllib.request
 
 if len(argv) != 6:
     sys.exit("Usage: python {} bootstrap-server:port apromore-server:port control-topic prefixes-topic predictions-topic".format(argv[0]))
@@ -54,16 +54,15 @@ def getPredictor(predictor_id):
 
     # if the pickle isn't cached, retrieve it from the Apromore server
     print("Downloading predictor {} from Apromore".format(predictor_id))
-    with tempfile.NamedTemporaryFile() as f:
-        urllib.request.URLopener().retrieve("http://{}/predictiveMonitor/id?{}".format(apromore_server, predictor_id), f.name);
-        pipelines = pickle.load(f)
-        bucketer = pickle.load(f)
-        dataset_manager = pickle.load(f)
+    f = urllib.request.urlopen("http://{}/predictiveMonitor/id?{}".format(apromore_server, predictor_id))
+    pipelines = pickle.load(f)
+    bucketer = pickle.load(f)
+    dataset_manager = pickle.load(f)
 
-        dtypes = {col: "str" for col in dataset_manager.dynamic_cat_cols + dataset_manager.static_cat_cols +
-              [dataset_manager.case_id_col, dataset_manager.timestamp_col]}
-        for col in dataset_manager.dynamic_num_cols + dataset_manager.static_num_cols:
-            dtypes[col] = "float"
+    dtypes = {col: "str" for col in dataset_manager.dynamic_cat_cols + dataset_manager.static_cat_cols +
+          [dataset_manager.case_id_col, dataset_manager.timestamp_col]}
+    for col in dataset_manager.dynamic_num_cols + dataset_manager.static_num_cols:
+        dtypes[col] = "float"
 
     predictor_cache[predictor_id] = pipelines, bucketer, dataset_manager, dtypes
     return predictor_cache[predictor_id]
