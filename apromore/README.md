@@ -14,6 +14,7 @@ From the top directory of the Kafka distribution, execute the following commands
 $ bin/zookeeper-server-start.sh config/zookeeper.properties
 $ bin/kafka-server-start.sh config/server.properties
 ```
+
 or under Windows:
 ```bat
 > bin\windows\zookeeper-server-start.bat config\zookeeper.properties
@@ -28,6 +29,7 @@ $ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic prefixes --rep
 $ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic predictions --replication-factor 1 --partitions 1
 $ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic control --replication-factor 1 --partitions 1
 ```
+
 or under Windows:
 ```bat
 > bin\windows\kafka-topics.bat --zookeeper localhost:2181 --create --topic events --replication-factor 1 --partitions 1
@@ -49,6 +51,7 @@ For instance, in bash this can be achieved by adding something similar to the fo
 ```bash
 $ export PYTHONPATH="$HOME/Work/nirdizati-training-backend:$HOME/Work/nirdizati-training-backend/core"
 ```
+
 or under Windows:
 ```bat
 > set PYTHONPATH=%HOME%\Work\nirdizati-training-backend;%HOME%\Work\nirdizati-training-backend\core
@@ -88,6 +91,7 @@ $ bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic prefixes
 $ bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic predictions
 $ bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic control
 ```
+
 or under Windows:
 ```bat
 > bin\window\kafka-topics.bat --zookeeper localhost:2181 --delete --topic events
