@@ -28,8 +28,6 @@ if len(sys.argv) != 6:
 
 bootstrap_server, control_topic, source_topic, destination_topic, delay = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], float(sys.argv[5])
 state_dir = "collator_state"
-case_id_field = 'concept:name'
-event_nr_field = 'event_nr'
 
 print("Collating events from \"{}\" into \"{}\" with control channel \"{}\" every {} seconds".format(source_topic,
                                                                                                      destination_topic,
@@ -64,8 +62,8 @@ while True:
             if active_logs is not None and not log_id in active_logs:
                 print("Discarding event from deleted monitor {}".format(log_id))
             else:
-                case_id = event.get('case_attributes').get(case_id_field)
-                event_nr = int(event.get('event_attributes').get(event_nr_field))
+                case_id = event.get('case_id')
+                event_nr = int(event.get('event_nr'))
 
                 if not os.path.isdir(state_dir):
                     os.mkdir(state_dir)

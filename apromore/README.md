@@ -15,6 +15,12 @@ $ bin/zookeeper-server-start.sh config/zookeeper.properties
 $ bin/kafka-server-start.sh config/server.properties
 ```
 
+or under Windows:
+```bat
+> bin\windows\zookeeper-server-start.bat config\zookeeper.properties
+> bin\windows\kafka-server-start.bat config\server.properties
+```
+
 * To create the default topics Apromore will use to communicate with Nirdizati, execute the following commands:
 
 ```bash
@@ -24,6 +30,13 @@ $ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic predictions --
 $ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic control --replication-factor 1 --partitions 1
 ```
 
+or under Windows:
+```bat
+> bin\windows\kafka-topics.bat --zookeeper localhost:2181 --create --topic events --replication-factor 1 --partitions 1
+> bin\windows\kafka-topics.bat --zookeeper localhost:2181 --create --topic prefixes --replication-factor 1 --partitions 1
+> bin\windows\kafka-topics.bat --zookeeper localhost:2181 --create --topic predictions --replication-factor 1 --partitions 1
+> bin\windows\kafka-topics.bat --zookeeper localhost:2181 --create --topic control --replication-factor 1 --partitions 1
+```
 
 * Ensure that Python 3 is available.  This procedure is known to work with Python versions 3.5 and 3.6.
 From the `nirdizati-training-backend` directory, install additional required libraries using the following command:
@@ -37,6 +50,11 @@ For instance, in bash this can be achieved by adding something similar to the fo
 
 ```bash
 $ export PYTHONPATH="$HOME/Work/nirdizati-training-backend:$HOME/Work/nirdizati-training-backend/core"
+```
+
+or under Windows:
+```bat
+> set PYTHONPATH=%HOME%\Work\nirdizati-training-backend;%HOME%\Work\nirdizati-training-backend\core
 ```
 
 * Let's presume that Apromore will be running at `localhost:9000` and the Kafka broker at `localhost:9092`.
@@ -72,4 +90,12 @@ $ bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic events
 $ bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic prefixes
 $ bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic predictions
 $ bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic control
+```
+
+or under Windows:
+```bat
+> bin\window\kafka-topics.bat --zookeeper localhost:2181 --delete --topic events
+> bin\window\kafka-topics.bat --zookeeper localhost:2181 --delete --topic prefixes
+> bin\window\kafka-topics.bat --zookeeper localhost:2181 --delete --topic predictions
+> bin\window\kafka-topics.bat --zookeeper localhost:2181 --delete --topic control
 ```
