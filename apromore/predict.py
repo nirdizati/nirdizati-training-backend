@@ -91,7 +91,6 @@ while True:
                 predictor = jsonValue["predictor"]
                 pipelines, bucketer, dataset_manager, dtypes = getPredictor(predictor)
                 tag = dataset_manager.label_col
-                """print("Tag: {}".format(tag))"""
 
                 jsonPrefix = jsonValue["prefix"]
                 for event in jsonPrefix:
@@ -112,9 +111,8 @@ while True:
                 bucket = np.asscalar(bucketer.predict(test))
 
                 # select relevant classifier
-                if bucket not in pipelines:  # TODO fix this
-                    sys.exit("No matching model has been trained!")
-
+                if bucket not in pipelines:  # state-based bucketing may fail, in which case no prediction is issued
+                    print("-- No prediction issued, likely because a state-based bucketer never encountered this prefix in training --")
                 else:
                     # make actual predictions
                     preds = pipelines[bucket].predict_proba(test)

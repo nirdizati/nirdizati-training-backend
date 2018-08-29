@@ -65,7 +65,7 @@ dtypes = {col: "str" for col in dataset_manager.dynamic_cat_cols + dataset_manag
 for col in dataset_manager.dynamic_num_cols + dataset_manager.static_num_cols:
     dtypes[col] = "float"
 
-data = pd.read_csv(train_file, sep=",|;", dtype=dtypes, engine="python")
+data = pd.read_csv(train_file, sep=",", dtype=dtypes)
 
 data[dataset_manager.timestamp_col] = pd.to_datetime(data[dataset_manager.timestamp_col])
 
