@@ -89,48 +89,55 @@ while True:
                 print("Discarding case prefix from deleted monitor {}".format(log_id))
             else:
                 predictor = jsonValue["predictor"]
-                pipelines, bucketer, dataset_manager, dtypes = getPredictor(predictor)
-                tag = dataset_manager.label_col
+                try:
+                    pipelines, bucketer, dataset_manager, dtypes = getPredictor(predictor)
+                    tag = dataset_manager.label_col
 
-                jsonPrefix = jsonValue["prefix"]
-                for event in jsonPrefix:
-                    event[dataset_manager.case_id_col] = jsonValue["case_id"]
-                    for case_attribute in jsonValue["case_attributes"]:
-                        if not case_attribute in event:
-                            event[case_attribute] = jsonValue["case_attributes"][case_attribute]
+                    jsonPrefix = jsonValue["prefix"]
+                    for event in jsonPrefix:
+                        event[dataset_manager.case_id_col] = jsonValue["case_id"]
+                        for case_attribute in jsonValue["case_attributes"]:
+                            if not case_attribute in event:
+                                event[case_attribute] = jsonValue["case_attributes"][case_attribute]
 
-                prefix = json.dumps(jsonPrefix)
-                """
-                print("-- INPUT --")
-                print(prefix)
-                """
-                test = pd.read_json(prefix, orient='records', dtype=dtypes)
-                test[dataset_manager.timestamp_col] = pd.to_datetime(test[dataset_manager.timestamp_col])
-
-                # get bucket for the test case
-                bucket = np.asscalar(bucketer.predict(test))
-
-                # select relevant classifier
-                if bucket not in pipelines:  # state-based bucketing may fail, in which case no prediction is issued
-                    print("-- No prediction issued, likely because a state-based bucketer never encountered this prefix in training --")
-                else:
-                    # make actual predictions
-                    preds = pipelines[bucket].predict_proba(test)
-                    if preds.ndim == 1:  # regression
-                        preds = pd.DataFrame(preds.clip(min=0), columns=[dataset_manager.label_col])
-
-                    preds = preds.to_json(orient='records')
-
-                    # emit the predictions to the predictions_topic
-                    output = {
-                        "log_id":      log_id,
-                        "case_id":     jsonValue["case_id"],
-                        "event_nr":    len(jsonValue["prefix"]),
-                        "predictions": {tag: json.loads(preds)[0]}
-                    }
-                    print("-- OUTPUT --")
-                    print(json.dumps(output))
+                    prefix = json.dumps(jsonPrefix)
                     """
-                    print(json.dumps({ "input": jsonPrefix, "output": output }))
+                    print("-- INPUT --")
+                    print(prefix)
                     """
-                    producer.send(predictions_topic, json.dumps(output).encode('utf-8'))
+                    test = pd.read_json(prefix, orient='records', dtype=dtypes)
+                    test[dataset_manager.timestamp_col] = pd.to_datetime(test[dataset_manager.timestamp_col])
+
+                    # get bucket for the test case
+                    bucket = np.asscalar(bucketer.predict(test))
+
+                    # select relevant classifier
+                    if bucket not in pipelines:  # state-based bucketing may fail, in which case no prediction is issued
+                        print("-- No prediction issued, likely because a state-based bucketer never encountered this prefix in training --")
+                    else:
+                        # make actual predictions
+                        preds = pipelines[bucket].predict_proba(test)
+                        if preds.ndim == 1:  # regression
+                            preds = pd.DataFrame(preds.clip(min=0), columns=[dataset_manager.label_col])
+
+                        preds = preds.to_json(orient='records')
+
+                        # emit the predictions to the predictions_topic
+                        output = {
+                            "log_id":      log_id,
+                            "case_id":     jsonValue["case_id"],
+                            "event_nr":    len(jsonValue["prefix"]),
+                            "predictions": {tag: json.loads(preds)[0]}
+                        }
+                        print("-- OUTPUT --")
+                        print(json.dumps(output))
+                        """
+                        print(json.dumps({ "input": jsonPrefix, "output": output }))
+                        """
+                        producer.send(predictions_topic, json.dumps(output).encode('utf-8'))
+
+                except urllib.error.HTTPError as e:
+                    print("Unable to download predictor: {}".format(e))
+
+                except KeyError as e:
+                    print("Log does not match predictor: {}".format(e))
