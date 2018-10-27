@@ -1,0 +1,21 @@
+,Gini-importance
+duration_max,0.09268350428781755
+duration_sum,0.08603722228230783
+Activity_W_Handle_leads,0.0669226003533767
+duration_std,0.055163530793161615
+NumberOfTerms_max,0.053386613587479086
+duration_mean,0.05331250658836381
+FirstWithdrawalAmount_sum,0.05169607285844013
+FirstWithdrawalAmount_mean,0.04682993930224101
+FirstWithdrawalAmount_min,0.04634628105186927
+FirstWithdrawalAmount_max,0.04454868466118011
+NumberOfTerms_min,0.036711460935957514
+NumberOfTerms_mean,0.035048578490171386
+NumberOfTerms_sum,0.03448696184167592
+OfferedAmount_max,0.033765368841316465
+OfferedAmount_sum,0.03321624640612718
+OfferedAmount_mean,0.029925794744012295
+OfferedAmount_min,0.029427161233651786
+LoanGoal_Car,0.019151826670870835
+Resource_other,0.01729087445847917
+LoanGoal_Existing loan takeover,0.015208086952256094

@@ -13,23 +13,23 @@ def get_classifier(method, mode, max_features=None, n_estimators=None, learning_
     if method == "xgb" and mode == "regr":
         return ClassifierWrapper(
             cls=XGBRegressor(n_estimators=n_estimators, learning_rate=learning_rate, subsample=subsample,
-                                     max_depth=max_depth, colsample_bytree=colsample_bytree, n_jobs=4, random_state=random_state),
+                                     max_depth=max_depth, colsample_bytree=colsample_bytree, n_jobs=-1, random_state=random_state),
             min_cases_for_training=min_cases_for_training, mode=mode)
 
     elif method == "xgb" and mode == "class":
         return ClassifierWrapper(
             cls=XGBClassifier(n_estimators=n_estimators, learning_rate=learning_rate, subsample=subsample,
-                                     max_depth=max_depth, colsample_bytree=colsample_bytree, n_jobs=4, random_state=random_state),
+                                     max_depth=max_depth, colsample_bytree=colsample_bytree, n_jobs=-1, random_state=random_state),
             min_cases_for_training=min_cases_for_training, mode=mode)
 
     elif method == "rf" and mode == "regr":
         return ClassifierWrapper(
-            cls=RandomForestRegressor(n_estimators=n_estimators, max_features=max_features, random_state=random_state),
+            cls=RandomForestRegressor(n_estimators=n_estimators, max_features=max_features, n_jobs=-1, random_state=random_state),
             min_cases_for_training=min_cases_for_training, mode=mode)
 
     elif method == "rf" and mode == "class":
         return ClassifierWrapper(
-            cls=RandomForestClassifier(n_estimators=n_estimators, max_features=max_features, random_state=random_state),
+            cls=RandomForestClassifier(n_estimators=n_estimators, max_features=max_features, n_jobs=-1, random_state=random_state),
             min_cases_for_training=min_cases_for_training, mode=mode)
                
     elif method == "gbm" and mode == "regr":

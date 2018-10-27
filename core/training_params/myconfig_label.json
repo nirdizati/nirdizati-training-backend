@@ -1,0 +1,1 @@
+{"label":{"cluster":{"agg":{"rf":{"n_clusters":3,"n_estimators":200,"max_features":0.9}}}},"ui_data":{"log_file":"..\/logdata\/bpi17_sample.csv","job_owner":"a6b090a636023fadfa5d1318e5d6cf6e","start_time":"2018-06-28T13:51:29.491Z"},"evaluation":{"metric":"acc","value":0.6336283186}}

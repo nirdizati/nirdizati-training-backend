@@ -15,7 +15,8 @@ def get_score(actual, predicted, mode):
         score["acc"] = accuracy_score(actual, predicted_labels)
         score["f1"] = f1_score(actual, predicted_labels, average='weighted')
         try:
-            score["logloss"] = log_loss(actual, predicted, labels=predicted.columns)
+            score["logloss"] = log_loss(actual, predicted)
+            # score["logloss"] = log_loss(actual, predicted, labels=predicted.columns)
         except ValueError:
             print("logloss cannot be calculated")
     return score

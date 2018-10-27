@@ -1,0 +1,21 @@
+,Gini-importance
+duration_max,0.07614360004663467
+FirstWithdrawalAmount_mean,0.07546805590391159
+duration_mean,0.0705462247133255
+NumberOfTerms_mean,0.06851959228515625
+OfferedAmount_mean,0.057807374745607376
+duration_sum,0.056359775364398956
+Action_statechange,0.04844624549150467
+EventOrigin_Application,0.03744450956583023
+FirstWithdrawalAmount_max,0.02904844656586647
+NumberOfTerms_max,0.027504343539476395
+Resource_User_1,0.02596023865044117
+Activity_A_Cancelled,0.02209998108446598
+duration_std,0.02084539644420147
+OfferedAmount_max,0.019783824682235718
+Resource_other,0.01920478604733944
+LoanGoal_Home improvement,0.01698513887822628
+FirstWithdrawalAmount_min,0.016406098380684853
+NumberOfTerms_min,0.01534452848136425
+NumberOfTerms_sum,0.01524802204221487
+OfferedAmount_sum,0.01524802204221487

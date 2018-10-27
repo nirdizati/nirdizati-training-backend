@@ -3,4 +3,4 @@
 # Except this file
 !.gitignore
 # Except example feature importance file
-!feat_importance_bpi17_sample_myconfig_1.csv
+!feat_importance_bpi17_sample_myconfig_*

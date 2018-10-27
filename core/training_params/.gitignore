@@ -3,4 +3,4 @@
 # Except this file
 !.gitignore
 # Except example training config
-!myconfig.json
+!myconfig_*
