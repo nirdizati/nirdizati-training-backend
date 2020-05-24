@@ -1,3 +1,4 @@
+import json
 import sys
 import os
 from pathlib import Path
@@ -20,8 +21,9 @@ class DatasetManager:
         self.dataset_name = dataset_name
         self.label_col = label_col
 
-        dataset_params = pd.read_json(dataset_params_dir / ("%s.json" % self.dataset_name), orient="index", typ="series")
-
+        with open(dataset_params_dir / ("%s.json" % self.dataset_name)) as f:
+            dataset_params = json.load(f)
+            
         self.case_id_col = dataset_params['case_id_col']
         self.activity_col = dataset_params['activity_col']
         self.timestamp_col = dataset_params['timestamp_col']
@@ -55,7 +57,7 @@ class DatasetManager:
         group = group.sort_values(self.timestamp_col, ascending=True, kind="mergesort")
         end_date = group[self.timestamp_col].iloc[-1]
         tmp = end_date - group[self.timestamp_col]
-        tmp = tmp.fillna(0)
+        tmp = tmp.fillna(pd.Timedelta(seconds=0))
         group["remtime"] = tmp.apply(lambda x: float(x / np.timedelta64(1, 's')))  # 's' is for seconds
         return group
 
