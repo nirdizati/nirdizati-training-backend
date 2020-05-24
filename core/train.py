@@ -29,9 +29,9 @@ feature_importance_dir = Path("results/feature_importance/")
 pickles_dir = Path("pkl/")
 
 path_to_open = Path.cwd().parent / training_params_dir / ("%s.json" % config_file)
-configfile = open(path_to_open)
-config = json.load(configfile)
-configfile.close()
+with open(path_to_open) as f:
+    config = json.load(f)
+
 train_file = config["ui_data"]["log_file"]
 dataset_ref = os.path.splitext(os.path.basename(train_file))[0]
 
@@ -287,9 +287,8 @@ with open(str(outfile), 'w') as fout:
 
     # get average scores across all evaluated prefix lengths
     config["evaluation"] = evaluation.get_agg_score(detailed_results.actual, detailed_results.predicted, mode=mode)
-    configfile = open(Path.cwd().parent / training_params_dir / ("%s.json" % config_file), 'w')
-    json.dump(config, configfile)
-    configfile.close()
+    with open(Path.cwd().parent / training_params_dir / ("%s.json" % config_file), 'w') as f:
+        json.dump(config, f)
 
     print("\n")
 
