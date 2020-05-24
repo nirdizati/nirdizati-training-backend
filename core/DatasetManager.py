@@ -21,10 +21,9 @@ class DatasetManager:
         self.dataset_name = dataset_name
         self.label_col = label_col
 
-        dataset_params_file = open(dataset_params_dir / ("%s.json" % self.dataset_name))
-        dataset_params = json.load(dataset_params_file)
-        dataset_params_file.close()
-
+        with open(dataset_params_dir / ("%s.json" % self.dataset_name)) as f:
+            dataset_params = json.load(f)
+            
         self.case_id_col = dataset_params['case_id_col']
         self.activity_col = dataset_params['activity_col']
         self.timestamp_col = dataset_params['timestamp_col']
