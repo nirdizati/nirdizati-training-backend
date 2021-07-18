@@ -109,7 +109,7 @@ while True:
                     test[dataset_manager.timestamp_col] = pd.to_datetime(test[dataset_manager.timestamp_col])
 
                     # get bucket for the test case
-                    bucket = np.asscalar(bucketer.predict(test))
+                    bucket = bucketer.predict(test).item()
 
                     # select relevant classifier
                     if bucket not in pipelines:  # state-based bucketing may fail, in which case no prediction is issued

@@ -1,14 +1,14 @@
 This repo contains scripts to train models for [Nirdizati](http://nirdizati.com) predictive process monitoring engine. The following instructions are for the standalone use. For use with [Apromore](http://apromore.org/), please refer to [these instructions](https://github.com/nirdizati/nirdizati-training-backend/blob/master/apromore/README.md).
 
 ## Requirements
-Tested with Python 3.5 and Python 3.6. Note Python 2.x is not supported anymore. Install the necessary packages with
+Tested with Python 3.5 and Python 3.6. Install the necessary packages with
 ```bash
 pip install -r requirements.txt
 ```
 
 ## Training predictive models
 ```bash
-export PYTHONPATH=../nirdizati-training-backend/
+export PYTHONPATH=$PYTHONPATH:/wherever/you/keep/nirdizati-training-backend
 cd core/
 python train.py training-config-ID 
 ```
@@ -18,10 +18,10 @@ python train.py training-config-ID
 Example:
 
 ```bash
-python train.py myconfig
+python train.py myconfig_remtime
 ```
 
-This script assumes that you have a training configuration file `core/training_params/myconfig.json
+This script assumes that you have a training configuration file `core/training_params/myconfig_remtime.json
 ` with the following structure: 
 
 ### Training configuration structure
@@ -86,17 +86,17 @@ Default hyperparameters for XGBoost predictor:
 
 ## Test for an ongoing case
 ```bash
-export PYTHONPATH=....../
+export PYTHONPATH=$PYTHONPATH:/wherever/you/keep/nirdizati-training-backend
 cd core/
-python predict-trace.py path_to_single_test_prefix.json path_to_pickle_model_filename 
+python predict_trace.py path_to_single_test_prefix.json path_to_pickle_model_filename 
 ```
 
 Example:
 ```bash
-python predict-trace.py ../logdata/1170931347.json ../pkl/bpi17_sample_myconfig.pkl
+python predict_trace.py ../logdata/1170931347.json ../pkl/bpi17_sample_myconfig_remtime.pkl
 ```
 
 The output should be printed to stdout, for example:
 ```bash
-[{"remtime":11.6899995804}]
+[{"remtime":15.9565439224}]
 ```

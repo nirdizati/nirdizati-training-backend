@@ -28,7 +28,7 @@ class TestBpi17Predictions(unittest.TestCase):
         test[dataset_manager.timestamp_col] = pd.to_datetime(test[dataset_manager.timestamp_col])
 
         # get bucket for the test case
-        bucket = np.asscalar(bucketer.predict(test))
+        bucket = bucketer.predict(test).item()
 
         # select relevant classifier and make prediction
         if bucket not in pipelines:  # TODO fix this
@@ -60,7 +60,7 @@ class TestBpi17Predictions(unittest.TestCase):
         test[dataset_manager.timestamp_col] = pd.to_datetime(test[dataset_manager.timestamp_col])
 
         # get bucket for the test case
-        bucket = np.asscalar(bucketer.predict(test))
+        bucket = bucketer.predict(test).item()
 
         # select relevant classifier and make prediction
         if bucket not in pipelines:  # TODO fix this

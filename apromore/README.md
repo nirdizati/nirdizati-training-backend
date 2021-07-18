@@ -5,7 +5,7 @@ It has optional support for training [Nirdizati](http://nirdizati.org) models an
 Use the following procedure to set up a Nirdizati backend to work with Apromore:
 
 
-* Obtain a Kafka distribution at version 1.1, for instance from the following [URL](https://www.apache.org/dyn/closer.cgi?path=/kafka/1.1.1/kafka_2.11-1.1.1.tgz)
+* Obtain a Kafka distribution at version 2.2.0, for instance from the following [URL](https://archive.apache.org/dist/kafka/2.2.0/kafka_2.12-2.2.0.tgz)
 
 * A minimal Kafka cluster requires at least one Zookeeper server and one Kafka broker.
 From the top directory of the Kafka distribution, execute the following commands in separate shells to start Zookeeper and Kafka:
@@ -46,7 +46,7 @@ $ pip install -r requirements.txt
 ```
 
 * Modify `PYTHONPATH` in your shell environment to include the `nirdizati-training-backend` and `nirdizati-training-backend/core` directories.
-For instance, in bash this can be achieved by adding something similar to the following in `~/.profile`:
+For instance, in bash this can be achieved by running something like:
 
 ```bash
 $ export PYTHONPATH="$HOME/Work/nirdizati-training-backend:$HOME/Work/nirdizati-training-backend/core"
